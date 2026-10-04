@@ -25,6 +25,31 @@ let visible = new Set(), rootId = null;
 let interest = new Map(), showInterest = true;
 const $ = id => document.getElementById(id);
 
+/* ---------- user renames (display only; node.label stays the original so traces still match) ---------- */
+let renames = new Map(), inspectedId = null;
+const nameOf = id => renames.get(id) || (nodes.get(id) || {}).label || id;
+const renameKey = () => 'reView-names:' + djb2(new TextEncoder().encode([...nodes.keys()].join(',')));
+function loadRenames() {
+    renames = new Map();
+    try {
+        const o = JSON.parse(localStorage.getItem(renameKey()) || '{}');
+        Object.entries(o).forEach(([id, nm]) => { if (nodes.has(id) && typeof nm === 'string' && nm) renames.set(id, nm); });
+    } catch (e) { /* storage unavailable: renames just won't persist */ }
+}
+function saveRenames() {
+    try { localStorage.setItem(renameKey(), JSON.stringify(Object.fromEntries(renames))); } catch (e) {}
+}
+// decompiled code with every renamed function swapped for its new name (single pass, whole words only)
+function renderedCode(n) {
+    const code = n.decompiled || '// Decompilation unavailable';
+    const map = new Map();
+    renames.forEach((nm, id) => { const o = nodes.get(id); if (o && o.label !== nm) map.set(o.label, nm); });
+    if (!map.size) return code;
+    const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp('\\b(?:' + [...map.keys()].map(esc).join('|') + ')\\b', 'g');
+    return code.replace(re, m => map.get(m));
+}
+
 if (typeof cytoscapeDagre !== 'undefined') cytoscape.use(cytoscapeDagre);
 
 // Canvas text doesn't trigger web-font loading, so load it explicitly and repaint once ready
@@ -58,6 +83,8 @@ function loadGraph(data) {
         inn.get(e.target).push(e.source);
     });
     rootId = findRoot();
+    inspectedId = null;
+    loadRenames();
     computeInterest();
     graphTraces = Array.isArray(data.traces) ? data.traces : [];
     setupTrace();
@@ -212,7 +239,7 @@ function showTip(n) {
     const id = n.id(), node = nodes.get(id), tip = $('tip');
     tip.replaceChildren();
     const add = (cls, text) => { const d = document.createElement('div'); d.className = cls; d.textContent = text; tip.appendChild(d); };
-    add('font-mono font-bold text-white break-all', node.label);
+    add('font-mono font-bold text-white break-all', nameOf(id));
     add('font-mono text-slate-500', node.id + ' · ' + (node.type || 'custom'));
     add('text-slate-400 mt-1', (inn.get(id) || []).length + ' caller(s) · ' + (out.get(id) || []).length + ' callee(s)');
     const why = interest.get(id);
@@ -237,7 +264,7 @@ function ensureVisible(ids) {
     added.forEach(id => visible.add(id));
     cy.add(added.map(id => {
         const n = nodes.get(id);
-        return { data: { id, label: shortLabel(n.label), type: n.type || 'custom' },
+        return { data: { id, label: shortLabel(nameOf(id)), type: n.type || 'custom' },
             classes: (showInterest && interest.has(id)) ? 'interest' : '' };
     }));
     const edges = [];
@@ -349,7 +376,7 @@ function pathFromRoot(target) {
 function chip(id) {
     const b = document.createElement('button');
     b.className = CHIP;
-    b.textContent = nodes.get(id).label;
+    b.textContent = nameOf(id);
     b.addEventListener('click', () => focusNode(id));
     return b;
 }
@@ -376,7 +403,11 @@ function inspect(id, quiet) {
     $('detail').classList.remove('hidden');
     $('funcTypeBadge').className = 'text-[10px] font-mono tracking-wider uppercase border px-2 py-0.5 rounded ' + (BADGE[type] || BADGE.custom);
     $('funcTypeBadge').textContent = type;
-    $('funcName').textContent = n.label;
+    inspectedId = id;
+    $('funcName').textContent = nameOf(id);
+    $('renameReset').classList.toggle('hidden', !renames.has(id));
+    $('origName').textContent = 'originally ' + n.label;
+    $('origName').classList.toggle('hidden', !renames.has(id));
     $('funcAddr').textContent = 'Address: ' + n.id;
     $('typeInfo').textContent = TYPE_INFO[type] || TYPE_INFO.custom;
 
@@ -396,7 +427,7 @@ function inspect(id, quiet) {
     fillChips($('callees'), out.get(id), 'nothing, a leaf function');
 
     const code = $('codeBlock');
-    code.textContent = n.decompiled || '// Decompilation unavailable';
+    code.textContent = renderedCode(n);
     if (window.Prism) Prism.highlightElement(code);
 
     // call path + highlighting
@@ -443,6 +474,14 @@ const LOG_OLD = 'rounded-md border-l-2 border-transparent px-3 py-1.5 opacity-60
 let graphTraces = [];
 const trace = { events: [], src: [], i: 0, stack: [], playing: false, busy: false, active: false, run: 0, keycheck: false, ids: new Set() };
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const END_STYLE = {
+    ok:    'bg-emerald-950/50 border-emerald-500/40 text-emerald-300',
+    warn:  'bg-amber-950/50 border-amber-500/40 text-amber-300',
+    error: 'bg-rose-950/50 border-rose-500/40 text-rose-300'
+};
+let liveCfg = null, liveBusy = false;       // liveCfg is set when review.py runs with --live
+// canned inputs for the built-in keycheck simulation (each one fails at a different stage)
+const SIM_KEYS = [['AREV3RSZ', 'valid key'], ['short', 'too short'], ['BREV3RSZ', 'wrong first letter'], ['AAAAAAAZ', 'right shape, wrong hash']];
 
 function djb2(bytes) { let h = 5381; for (const c of bytes) h = (Math.imul(h, 33) + c) >>> 0; return h; }
 const hex32 = h => '0x' + h.toString(16).padStart(8, '0');
@@ -502,8 +541,18 @@ function simulateKeycheck(key) {
 }
 
 function idsByLabel(l) { return [...nodes.values()].filter(n => n.label === l).map(n => n.id); }
+// recorded (gdb) traces use node ids, the built-in simulation uses labels
+function nodeId(x) { return nodes.has(x) ? x : idsByLabel(x)[0]; }
+// real traces carry no teaching notes, so borrow the first sentence of the callee's explanation
+function calleeNote(id) {
+    const s = (nodes.get(id) || {}).summary;
+    if (!s || s === PLACEHOLDER || s.startsWith('AI analysis failed')) return undefined;
+    const first = s.split(/(?<=[.!?])\s/)[0];
+    return first.length > 220 ? first.slice(0, 217) + '…' : first;
+}
 
 function resolveCall(from, to) {
+    if (nodes.has(from) && nodes.has(to)) return [from, to];
     const f = idsByLabel(from);
     for (const fid of f)
         for (const t of out.get(fid) || [])
@@ -517,23 +566,23 @@ function prepareTrace(events) {
     let st = [];
     events.forEach(e => {
         if (e.t === 'enter') {
-            const id = idsByLabel(e.fn)[0];
+            const id = nodeId(e.fn);
             if (id === undefined) return;
             st = [id]; ids.add(id);
-            list.push({ t: 'enter', a: id, head: nodes.get(id).label + ' starts', note: e.note });
+            list.push({ t: 'enter', a: id, head: nameOf(id) + ' starts', note: e.note });
         } else if (e.t === 'call') {
             const r = resolveCall(e.from, e.to);
             if (!r) { st.push(null); return; }
             st.push(r[1]); ids.add(r[0]); ids.add(r[1]); edges.add(r[0] + '->' + r[1]);
-            list.push({ t: 'call', a: r[0], b: r[1], head: e.from + ' calls ' + e.to, note: e.note });
+            list.push({ t: 'call', a: r[0], b: r[1], head: nameOf(r[0]) + ' calls ' + nameOf(r[1]) + (e.args ? '(' + e.args + ')' : ''), note: e.note || (e.args !== undefined ? calleeNote(r[1]) : undefined) });
         } else if (e.t === 'ret') {
             const top = st.pop();
             if (top === undefined || top === null) return;
             const to = st.length ? st[st.length - 1] : undefined;
             list.push({ t: 'ret', a: top, b: to === null ? undefined : to, val: e.val,
-                head: nodes.get(top).label + ' returns' + (e.val ? ' ' + e.val : ''), note: e.note });
+                head: nameOf(top) + ' returns' + (e.val ? ' ' + e.val : ''), note: e.note });
         } else if (e.t === 'end') {
-            list.push({ t: 'end', ok: e.ok, note: e.note });
+            list.push({ t: 'end', ok: e.ok, level: e.level, note: e.note, output: e.output });
         }
     });
     return { list, ids, edges };
@@ -550,9 +599,11 @@ function traceClear() {
     log.replaceChildren();
     const d = document.createElement('div');
     d.className = 'text-slate-500 leading-relaxed';
-    d.textContent = (trace.keycheck || graphTraces.length)
-        ? (trace.keycheck ? 'Enter a key in the top bar, then press Trace.' : 'Press Trace in the top bar.') + ' Each step of the program is explained here as it happens.'
-        : 'No traces for this graph. The built-in one targets the keycheck demo; you can also add a "traces" array to graph.json.';
+    const hint = liveCfg ? 'Type an input in the top bar and press ▶ Trace.'
+        : !$('traceSelect').disabled ? 'Pick a trace in the top bar, then press Trace.' : null;
+    d.textContent = hint
+        ? hint + ' Each step of the program is explained here as it happens.'
+        : 'No traces for this graph. Record some with trace_run.py, or start review.py with --live.';
     log.appendChild(d);
     $('traceResult').classList.add('hidden');
     renderStack();
@@ -562,15 +613,40 @@ function traceClear() {
 function setupTrace() {
     const labels = new Set([...nodes.values()].map(n => n.label));
     trace.keycheck = KEYCHECK_LABELS.every(l => labels.has(l));
-    $('traceInput').classList.toggle('hidden', !trace.keycheck);
+
+    // dropdown: recorded runs from graph.json first, then the keycheck simulation's canned keys
+    const sel = $('traceSelect');
+    sel.replaceChildren();
+    const group = text => { const g = document.createElement('optgroup'); g.label = text; sel.appendChild(g); return g; };
+    const add = (g, value, text) => { const o = document.createElement('option'); o.value = value; o.textContent = text; g.appendChild(o); };
+    if (graphTraces.length) {
+        const g = group('Recorded runs');
+        graphTraces.forEach((t, i) => add(g, 't:' + i, t.label || 'run ' + (i + 1)));
+    }
+    if (trace.keycheck) {
+        const g = group('Simulated');
+        SIM_KEYS.forEach(([k, why]) => add(g, 's:' + k, k + ' (' + why + ')'));
+    }
+    sel.disabled = !sel.querySelector('option');
+    if (sel.disabled) { const o = document.createElement('option'); o.textContent = 'no traces'; sel.appendChild(o); }
+
+    // live mode: the Trace button runs whatever is typed in the live bar; otherwise it plays the selection
+    $('traceSelect').classList.toggle('hidden', !!liveCfg);
+    $('liveBar').classList.toggle('hidden', !liveCfg);
+    $('traceBtn').title = liveCfg ? 'Run the program with this input and animate it' : 'Animate the selected trace';
     traceClear();
 }
 
-function runFromInput(autoplay) { traceStart(simulateKeycheck($('traceInput').value), autoplay); }
-
+// plays the dropdown's selection (live mode has no selection: the Trace button calls liveRun instead)
 function startDefault(autoplay) {
-    if (trace.keycheck) runFromInput(autoplay);
-    else if (graphTraces.length) traceStart(graphTraces[0].events || [], autoplay);
+    if (liveCfg) return;
+    const v = $('traceSelect').value || '';
+    if (v.startsWith('t:')) {
+        const t = graphTraces[+v.slice(2)];
+        if (t) traceStart(t.events || [], autoplay);
+    } else if (v.startsWith('s:')) {
+        traceStart(simulateKeycheck(v.slice(2)), autoplay);
+    }
 }
 
 function traceStart(events, autoplay) {
@@ -677,9 +753,9 @@ async function applyEvent(e, run) {
         setActive(e.b);
     } else if (e.t === 'end') {
         const r = $('traceResult');
-        r.textContent = e.note || (e.ok === false ? 'FAILED' : 'DONE');
-        r.className = 'rounded-lg border px-3 py-2 text-center font-bold tracking-wide ' +
-            (e.ok === false ? 'bg-rose-950/50 border-rose-500/40 text-rose-300' : 'bg-emerald-950/50 border-emerald-500/40 text-emerald-300');
+        const level = e.level || (e.ok === false ? 'error' : 'ok');
+        r.textContent = e.note || (level === 'error' ? 'FAILED' : 'DONE');
+        r.className = 'rounded-lg border px-3 py-2 text-center font-bold tracking-wide ' + END_STYLE[level];
     }
     renderStack();
 }
@@ -687,7 +763,22 @@ async function applyEvent(e, run) {
 function addLog(e) {
     const log = $('traceLog');
     log.querySelectorAll('[data-cur]').forEach(x => { x.removeAttribute('data-cur'); x.className = LOG_OLD; });
-    if (e.t === 'end') return;
+    if (e.t === 'end') {
+        if (e.output) {
+            const box = document.createElement('div');
+            box.className = 'rounded-md border border-slate-700 bg-slate-950 px-3 py-2';
+            const t = document.createElement('div');
+            t.className = 'text-xs uppercase tracking-wider text-slate-400 mb-1';
+            t.textContent = 'Program output';
+            const pre = document.createElement('pre');
+            pre.className = 'font-mono text-sm text-slate-200 whitespace-pre-wrap break-words';
+            pre.textContent = e.output;               // untrusted program output: text only
+            box.append(t, pre);
+            log.appendChild(box);
+            log.scrollTop = log.scrollHeight;
+        }
+        return;
+    }
     const d = document.createElement('div');
     d.setAttribute('data-cur', '1');
     d.className = LOG_CUR;
@@ -719,7 +810,7 @@ function renderStack() {
         const d = document.createElement('div');
         d.className = 'rounded px-2 py-1 border ' + (i === 0
             ? 'bg-cyan-900/50 border-cyan-500/50 text-cyan-100' : 'bg-slate-950 border-slate-800 text-slate-400');
-        d.textContent = nodes.get(id).label;
+        d.textContent = nameOf(id);
         box.appendChild(d);
     });
 }
@@ -735,10 +826,13 @@ function setTracePanel(open) {
     if (cy) cy.resize();
 }
 
-$('traceBtn').addEventListener('click', () => { setTracePanel(true); startDefault(true); });
+$('traceBtn').addEventListener('click', () => {
+    setTracePanel(true);
+    if (liveCfg) liveRun(); else startDefault(true);
+});
 $('traceClose').addEventListener('click', () => setTracePanel(false));
-$('traceInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') { setTracePanel(true); runFromInput(true); }
+$('traceSelect').addEventListener('change', () => {       // picking another run replays it if the panel is open
+    if (!$('tracePanel').classList.contains('hidden')) startDefault(true);
 });
 $('tracePlay').addEventListener('click', () => {
     if (trace.playing) { trace.playing = false; updateTraceBtns(); } else tracePlay();
@@ -793,7 +887,7 @@ $('searchInput').addEventListener('keydown', e => {
     const q = e.target.value.trim().toLowerCase();
     cy.nodes().removeClass('match');
     if (!q) return;
-    const hits = [...nodes.values()].filter(n => n.label.toLowerCase().includes(q)).map(n => n.id);
+    const hits = [...nodes.values()].filter(n => (n.label + ' ' + nameOf(n.id)).toLowerCase().includes(q)).map(n => n.id);
     if (!hits.length) return;
     const added = ensureVisible(hits);
     hits.forEach(id => cy.getElementById(id).addClass('match'));
@@ -865,3 +959,87 @@ function sidebarClosed() { return $('sidebar').classList.contains('translate-x-f
 function openSidebar() { if (sidebarClosed()) toggleSidebar(); }
 
 $('sidebarBtn').addEventListener('click', toggleSidebar);
+
+/* ---------- rename in the inspector ---------- */
+function setName(id, raw) {
+    if (!nodes.has(id)) return;
+    const name = raw.trim().replace(/\s+/g, '_').slice(0, 64);   // identifiers can't contain spaces
+    if (!name || name === nodes.get(id).label) renames.delete(id); else renames.set(id, name);
+    saveRenames();
+    const c = cy && cy.getElementById(id);
+    if (c && c.length) c.data('label', shortLabel(nameOf(id)));
+    inspect(id, trace.busy);                                      // refresh title, chips, path and code
+}
+
+const nameEl = $('funcName');
+nameEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); nameEl.blur(); }
+    else if (e.key === 'Escape') { nameEl.textContent = nameOf(inspectedId); nameEl.blur(); }
+});
+nameEl.addEventListener('blur', () => {
+    if (inspectedId === null) return;
+    const t = nameEl.textContent.trim();
+    if (t === nameOf(inspectedId)) { nameEl.textContent = t; return; }
+    setName(inspectedId, t);                                      // empty text restores the original
+});
+$('renameReset').addEventListener('click', () => { if (inspectedId !== null) setName(inspectedId, ''); });
+
+
+/* ---------- live tracing (review.py --live) ---------- */
+function traceMessage(text, isErr) {
+    setTracePanel(true);
+    traceClear();
+    const log = $('traceLog');
+    log.replaceChildren();
+    const d = document.createElement('div');
+    d.className = isErr ? 'text-rose-300 leading-relaxed' : 'text-slate-400 leading-relaxed';
+    d.textContent = text;
+    log.appendChild(d);
+}
+
+function updateLiveMode() {
+    if (!liveCfg) return;
+    const args = $('liveMode').value === 'args';
+    $('liveInput').maxLength = args ? liveCfg.max_args : liveCfg.max_stdin;
+    $('liveInput').placeholder = args ? 'command-line arguments' : 'text typed on stdin';
+}
+
+async function liveRun() {
+    if (!liveCfg || liveBusy) return;
+    liveBusy = true;
+    const btn = $('traceBtn'), label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Running…';
+    traceMessage('Running the program under gdb…', false);
+    try {
+        const r = await fetch('/api/trace', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Review-Token': liveCfg.token },
+            body: JSON.stringify({ mode: $('liveMode').value, text: $('liveInput').value })
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok || !data.trace) throw new Error(data.error || 'HTTP ' + r.status);
+        setTracePanel(true);
+        traceStart(data.trace.events || [], true);
+    } catch (err) {
+        traceMessage('Live run failed: ' + err.message, true);
+    } finally {
+        liveBusy = false;
+        btn.disabled = false;
+        btn.textContent = label;
+    }
+}
+
+$('liveInput').addEventListener('keydown', e => { if (e.key === 'Enter') liveRun(); });
+$('liveMode').addEventListener('change', updateLiveMode);
+
+// the server only answers this when started with --live
+fetch('/api/config')
+    .then(r => r.ok ? r.json() : null)
+    .then(c => {
+        if (!c || !c.live) return;
+        liveCfg = c;
+        updateLiveMode();
+        if (nodes.size) setupTrace();      // graph finished loading first: refresh the trace bar and hint
+    })
+    .catch(() => {});

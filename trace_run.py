@@ -85,6 +85,41 @@ def reg(name):
     return int(gdb.parse_and_eval("$" + name)) & MASK64
 
 
+def plt_spec(name):
+    """Location of the program's own PLT stub for `name` (every call from the program goes through it)."""
+    try:
+        return "*0x%x" % (int(gdb.parse_and_eval("'%s@plt'" % name).address) & MASK64)
+    except (gdb.error, RuntimeError):
+        pass
+    try:
+        m = re.search(r"0x[0-9a-fA-F]+", gdb.execute("info address '%s@plt'" % name, to_string=True))
+        return "*" + m.group(0) if m else None
+    except gdb.error:
+        return None
+
+
+def import_bp(name):
+    """Internal breakpoint on a library function, or RuntimeError if none can be placed.
+    Normal functions: '*name' = exact entry (no prologue skipping, so [rsp] is the return address).
+    GNU ifuncs (strlen, strncpy, ...): the symbol is only a resolver that already ran, and breaking on it
+    by name makes gdb add its own stop-happy resolver breakpoints, so use the PLT stub instead."""
+    try:
+        kind = str(gdb.parse_and_eval(name).type)
+    except gdb.error:
+        kind = ""
+    specs = [plt_spec(name)] if "indirect" in kind else ["*" + name, name]
+    for spec in specs:
+        if not spec:
+            continue
+        try:
+            bp = gdb.Breakpoint(spec, internal=True)
+            if bp.is_valid():
+                return bp
+        except (gdb.error, RuntimeError):
+            continue
+    raise RuntimeError("no usable breakpoint for " + name)
+
+
 # ---------------------------------------------------------------- inside gdb
 def gdb_main():
     cfg = json.load(open(os.environ["REVIEW_CFG"]))
@@ -108,24 +143,34 @@ def gdb_main():
     at_entry = int(m.group(1), 16)
     delta = at_entry - g_entry
 
-    # run to the entry point so shared libraries are loaded, then arm everything
-    gdb.execute("tbreak *0x%x" % at_entry, to_string=True)
-    gdb.execute("continue", to_string=True)
+    # run to the entry point so shared libraries are loaded, then arm everything.
+    # Statically linked programs have no dynamic loader: starti already stops at the entry point, and
+    # `continue` from a breakpoint at the current pc would run the whole program to its end.
+    if reg("rip") != at_entry:
+        gdb.execute("tbreak *0x%x" % at_entry, to_string=True)
+        gdb.execute("continue", to_string=True)
 
     events, stack, retmap, fnbp = [], [], {}, {}
+    skipped = []
     entry_node = next((n for n in nodes if n["type"] != "import" and int(n["id"], 16) == g_entry), None)
     for n in nodes:
         try:
             if n["type"] == "import":
-                bp = gdb.Breakpoint(n["label"], internal=True)
+                bp = import_bp(n["label"])
             else:
                 a = int(n["id"], 16)
                 if a == g_entry:
                     continue
                 bp = gdb.Breakpoint("*0x%x" % (a + delta), internal=True)
-            fnbp[bp.number] = n
-        except gdb.error:
-            pass
+            if bp.is_valid():
+                fnbp[bp.number] = n
+            else:
+                skipped.append(n["label"])   # gdb discarded it (symbol didn't resolve)
+        except (gdb.error, RuntimeError):
+            skipped.append(n["label"])
+
+    if skipped:
+        print("[trace] could not place breakpoints on: " + ", ".join(skipped))
 
     if entry_node:
         events.append({"t": "enter", "fn": entry_node["id"]})
@@ -158,22 +203,38 @@ def gdb_main():
         val = "" if (unknown or (re.search(r"\bvoid\b", rt) and "*" not in rt)) else fmt_val(rt, reg("rax"))
         events.append({"t": "ret", "fn": fr["id"], "val": val})
 
-    truncated, crashed, last_import = False, None, None
+    truncated, crashed, last_import, stop_err = False, None, None, None
+    spurious = 0
+    if not gdb.selected_inferior().pid:
+        stop_err, state["done"] = "the program exited before tracing could start", True
     while not state["done"]:
         state["ev"] = None
         try:
             gdb.execute("continue", to_string=True)
-        except gdb.error:
+        except gdb.error as ex:
+            stop_err = "gdb error: %s" % ex
             break
         if state["done"]:
             break
         ev = state["ev"]
         if isinstance(ev, gdb.SignalEvent):
             crashed = ev.stop_signal
+            try:
+                crashed += " at " + gdb.execute("info symbol $pc", to_string=True).strip().rstrip(".")
+            except gdb.error:
+                crashed += " at 0x%x" % reg("rip")
+            if stack:
+                crashed += ", inside " + by_id[stack[-1]["id"]]["label"]
             break
         if not isinstance(ev, gdb.BreakpointEvent):
-            break
-        nums = [b.number for b in ev.breakpoints]
+            # gdb sometimes stops for its own bookkeeping (not one of our breakpoints): just keep going
+            spurious += 1
+            if spurious > 50:
+                stop_err = "too many unexpected stops (%s)" % type(ev).__name__
+                break
+            continue
+        spurious = 0
+        nums = [b.number for b in ev.breakpoints if b.is_valid()]
 
         # returns first, deepest frame first
         rets = [retmap[x] for x in nums if x in retmap]
@@ -220,13 +281,15 @@ def gdb_main():
         output = ""
     if crashed:
         level, note = "error", "CRASHED (%s)" % crashed
+    elif stop_err:
+        level, note = "error", "TRACE STOPPED: " + stop_err
     elif truncated:
         level, note = "warn", "TRACE CUT OFF after %d events" % max_events
     else:
         code = state["code"]
         level, note = "ok", "EXITED" + ("" if code is None else " (code %s)" % code)
     events.append({"t": "end", "ok": level != "error", "level": level, "note": note, "output": output.strip()})
-    json.dump({"events": events}, open(os.environ["REVIEW_OUT"], "w"))
+    json.dump({"events": events, "skipped": skipped}, open(os.environ["REVIEW_OUT"], "w"))
 
 
 # ---------------------------------------------------------------- normal python (driver)
@@ -268,8 +331,11 @@ def record_run(gdb_bin, binary, nodes, g_entry, label, args, stdin, max_events, 
         if not os.path.exists(out):
             return None, (p.stderr or p.stdout)[-800:] or "gdb produced no trace"
         with open(out) as f:
-            events = json.load(f)["events"]
-    return {"label": label, "events": events}, None
+            res = json.load(f)
+    trace = {"label": label, "events": res["events"]}
+    if res.get("skipped"):
+        trace["skipped"] = res["skipped"]
+    return trace, None
 
 
 def main():
@@ -311,6 +377,8 @@ def main():
             continue
         traces.append(trace)
         print("[+] %-30s %d events, %s" % (label, len(trace["events"]), trace["events"][-1].get("note", "")))
+        if trace.get("skipped"):
+            print("    [!] no breakpoint could be placed on: " + ", ".join(trace["skipped"]))
 
     if not traces:
         sys.exit("No traces recorded.")

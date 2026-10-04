@@ -200,5 +200,392 @@
       "source": "0x00101385",
       "target": "0x00101199"
     }
+  ],
+  "traces": [
+    {
+      "label": "args: test",
+      "events": [
+        {
+          "t": "enter",
+          "fn": "0x001010a0"
+        },
+        {
+          "t": "call",
+          "from": "0x001010a0",
+          "to": "0xEXTERNAL:00000001",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0xEXTERNAL:00000001",
+          "to": "0x00101385",
+          "args": "2, 0x7fffffffe5e8"
+        },
+        {
+          "t": "call",
+          "from": "0x00101385",
+          "to": "0x00101199",
+          "args": "2, 140737488348648 (0x7fffffffe5e8), 0x7fffffffe460, 64"
+        },
+        {
+          "t": "call",
+          "from": "0x00101199",
+          "to": "0xEXTERNAL:00000002",
+          "args": "0x7fffffffe460, \"test\", 63"
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000002",
+          "val": "\"test\""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00101199",
+          "val": "1"
+        },
+        {
+          "t": "call",
+          "from": "0x00101385",
+          "to": "0x0010130f",
+          "args": "\"test\""
+        },
+        {
+          "t": "call",
+          "from": "0x0010130f",
+          "to": "0x00101253",
+          "args": "\"test\""
+        },
+        {
+          "t": "call",
+          "from": "0x00101253",
+          "to": "0xEXTERNAL:00000004",
+          "args": "\"test\""
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000004",
+          "val": "4"
+        },
+        {
+          "t": "ret",
+          "fn": "0x00101253",
+          "val": "0"
+        },
+        {
+          "t": "ret",
+          "fn": "0x0010130f",
+          "val": "0"
+        },
+        {
+          "t": "call",
+          "from": "0x00101385",
+          "to": "0x0010136f",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x0010136f",
+          "to": "0xEXTERNAL:00000003",
+          "args": "\"Access Denied!\""
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000003",
+          "val": "15"
+        },
+        {
+          "t": "ret",
+          "fn": "0x0010136f",
+          "val": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00101385",
+          "val": "0"
+        },
+        {
+          "t": "end",
+          "ok": true,
+          "level": "ok",
+          "note": "EXITED (code 0)",
+          "output": "Access Denied!"
+        }
+      ]
+    },
+    {
+      "label": "args: AREV3RSZ",
+      "events": [
+        {
+          "t": "enter",
+          "fn": "0x001010a0"
+        },
+        {
+          "t": "call",
+          "from": "0x001010a0",
+          "to": "0xEXTERNAL:00000001",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0xEXTERNAL:00000001",
+          "to": "0x00101385",
+          "args": "2, 0x7fffffffe5e8"
+        },
+        {
+          "t": "call",
+          "from": "0x00101385",
+          "to": "0x00101199",
+          "args": "2, 140737488348648 (0x7fffffffe5e8), 0x7fffffffe460, 64"
+        },
+        {
+          "t": "call",
+          "from": "0x00101199",
+          "to": "0xEXTERNAL:00000002",
+          "args": "0x7fffffffe460, \"AREV3RSZ\", 63"
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000002",
+          "val": "\"AREV3RSZ\""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00101199",
+          "val": "1"
+        },
+        {
+          "t": "call",
+          "from": "0x00101385",
+          "to": "0x0010130f",
+          "args": "\"AREV3RSZ\""
+        },
+        {
+          "t": "call",
+          "from": "0x0010130f",
+          "to": "0x00101253",
+          "args": "\"AREV3RSZ\""
+        },
+        {
+          "t": "call",
+          "from": "0x00101253",
+          "to": "0xEXTERNAL:00000004",
+          "args": "\"AREV3RSZ\""
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000004",
+          "val": "8"
+        },
+        {
+          "t": "ret",
+          "fn": "0x00101253",
+          "val": "1"
+        },
+        {
+          "t": "call",
+          "from": "0x0010130f",
+          "to": "0x00101277",
+          "args": "\"AREV3RSZ\""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00101277",
+          "val": "1"
+        },
+        {
+          "t": "call",
+          "from": "0x0010130f",
+          "to": "0x001012ea",
+          "args": "\"AREV3RSZ\""
+        },
+        {
+          "t": "call",
+          "from": "0x001012ea",
+          "to": "0x001012a7",
+          "args": "\"AREV3RSZ\""
+        },
+        {
+          "t": "ret",
+          "fn": "0x001012a7",
+          "val": "-944284955 (0xc7b75ae5)"
+        },
+        {
+          "t": "ret",
+          "fn": "0x001012ea",
+          "val": "1"
+        },
+        {
+          "t": "ret",
+          "fn": "0x0010130f",
+          "val": "1"
+        },
+        {
+          "t": "call",
+          "from": "0x00101385",
+          "to": "0x00101359",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x00101359",
+          "to": "0xEXTERNAL:00000003",
+          "args": "\"Access Granted!\""
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000003",
+          "val": "16"
+        },
+        {
+          "t": "ret",
+          "fn": "0x00101359",
+          "val": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00101385",
+          "val": "0"
+        },
+        {
+          "t": "end",
+          "ok": true,
+          "level": "ok",
+          "note": "EXITED (code 0)",
+          "output": "Access Granted!"
+        }
+      ]
+    },
+    {
+      "label": "stdin: test",
+      "events": [
+        {
+          "t": "enter",
+          "fn": "0x001010a0"
+        },
+        {
+          "t": "call",
+          "from": "0x001010a0",
+          "to": "0xEXTERNAL:00000001",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0xEXTERNAL:00000001",
+          "to": "0x00101385",
+          "args": "1, 0x7fffffffe5f8"
+        },
+        {
+          "t": "call",
+          "from": "0x00101385",
+          "to": "0x00101199",
+          "args": "1, 140737488348664 (0x7fffffffe5f8), 0x7fffffffe470, 64"
+        },
+        {
+          "t": "call",
+          "from": "0x00101199",
+          "to": "0xEXTERNAL:00000006",
+          "args": "\"Enter license key: \""
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000006",
+          "val": "19"
+        },
+        {
+          "t": "call",
+          "from": "0x00101199",
+          "to": "0xEXTERNAL:00000008",
+          "args": "0x7fffffffe470, 64, 0x7ffff7e198e0"
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000008",
+          "val": "\"test\\n\""
+        },
+        {
+          "t": "call",
+          "from": "0x00101199",
+          "to": "0xEXTERNAL:00000007",
+          "args": "\"test\\n\", \"\\n\""
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000007",
+          "val": "4"
+        },
+        {
+          "t": "ret",
+          "fn": "0x00101199",
+          "val": "1"
+        },
+        {
+          "t": "call",
+          "from": "0x00101385",
+          "to": "0x0010130f",
+          "args": "\"test\""
+        },
+        {
+          "t": "call",
+          "from": "0x0010130f",
+          "to": "0x00101253",
+          "args": "\"test\""
+        },
+        {
+          "t": "call",
+          "from": "0x00101253",
+          "to": "0xEXTERNAL:00000004",
+          "args": "\"test\""
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000004",
+          "val": "4"
+        },
+        {
+          "t": "ret",
+          "fn": "0x00101253",
+          "val": "0"
+        },
+        {
+          "t": "ret",
+          "fn": "0x0010130f",
+          "val": "0"
+        },
+        {
+          "t": "call",
+          "from": "0x00101385",
+          "to": "0x0010136f",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x0010136f",
+          "to": "0xEXTERNAL:00000003",
+          "args": "\"Access Denied!\""
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000003",
+          "val": "15"
+        },
+        {
+          "t": "ret",
+          "fn": "0x0010136f",
+          "val": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00101385",
+          "val": "0"
+        },
+        {
+          "t": "end",
+          "ok": true,
+          "level": "ok",
+          "note": "EXITED (code 0)",
+          "output": "Enter license key: Access Denied!"
+        }
+      ]
+    }
   ]
 }
