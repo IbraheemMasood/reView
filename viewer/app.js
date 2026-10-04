@@ -24,6 +24,12 @@ let cy = null, nodes = new Map(), out = new Map(), inn = new Map();
 let visible = new Set(), rootId = null;
 let interest = new Map(), showInterest = true;
 const $ = id => document.getElementById(id);
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const motionDuration = ms => reducedMotion.matches ? 0 : ms;
+const themeColor = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+let functionFilter = 'all';
+const graphPath = location.pathname.split('/').filter(Boolean);
+let graphLabel = decodeURIComponent(graphPath.at(-1)?.endsWith('.html') ? (graphPath.at(-2) || 'Binary graph') : (graphPath.at(-1) || 'Binary graph'));
 
 /* ---------- user renames (display only; node.label stays the original so traces still match) ---------- */
 let renames = new Map(), inspectedId = null;
@@ -67,11 +73,19 @@ fetch('graph.json')
 function showLoadError(err) {
     $('loadErr').textContent = err.message;
     $('loadMsg').classList.remove('hidden');
+    if ($('statusText')) $('statusText').textContent = 'Graph could not be loaded';
 }
 
 function loadGraph(data) {
     if (!data || !Array.isArray(data.nodes) || !Array.isArray(data.edges))
         throw new Error('JSON must contain "nodes" and "edges" arrays');
+    if (data.nodes.some(n => !n || typeof n.id !== 'string' || typeof n.label !== 'string') ||
+        data.edges.some(e => !e || typeof e.source !== 'string' || typeof e.target !== 'string'))
+        throw new Error('Each function needs a string id and label; each connection needs a source and target.');
+    if (new Set(data.nodes.map(n => n.id)).size !== data.nodes.length)
+        throw new Error('Function IDs must be unique.');
+    if (data.traces !== undefined && (!Array.isArray(data.traces) || data.traces.some(t => !t || !Array.isArray(t.events))))
+        throw new Error('Recorded traces must each contain an events array.');
     nodes = new Map(); out = new Map(); inn = new Map();
     data.nodes.forEach(n => nodes.set(n.id, n));
     data.edges.forEach(e => {
@@ -90,6 +104,7 @@ function loadGraph(data) {
     setupTrace();
     $('loadMsg').classList.add('hidden');
     resetView();
+    updateWorkspace(data);
 }
 
 function findRoot() {
@@ -103,7 +118,7 @@ function findRoot() {
 $('fileInput').addEventListener('change', e => {
     const f = e.target.files[0];
     if (!f) return;
-    f.text().then(t => loadGraph(JSON.parse(t))).catch(showLoadError);
+    f.text().then(t => { loadGraph(JSON.parse(t)); graphLabel = f.name.replace(/\.json$/i, ''); updateWorkspace(); }).catch(showLoadError);
     e.target.value = '';
 });
 
@@ -114,6 +129,8 @@ function createCy() {
     cy = cytoscape({
         container: $('cy'),
         wheelSensitivity: 0.3,
+        minZoom: 0.12,
+        maxZoom: 2.4,
         style: [
             { selector: 'node', style: {
                     label: 'data(label)', 'text-valign': 'center', 'text-halign': 'center',
@@ -181,6 +198,24 @@ function createCy() {
         hideTip();
     });
     cy.on('viewport drag', hideTip);
+    cy.on('zoom', () => { if ($('zoomValue')) $('zoomValue').textContent = Math.round(cy.zoom() * 100) + '%'; });
+    // Canvas styles share the same semantic palette as the surrounding workbench.
+    const c = name => themeColor(name);
+    if (c('--color-accent')) cy.style()
+        .selector('node').style({ color: c('--color-text'), 'background-color': c('--color-node'), 'border-color': c('--color-border'), width: window.innerWidth < 600 ? 132 : 176, height: 48, 'font-size': 12, 'text-max-width': window.innerWidth < 600 ? 120 : 160, 'transition-duration': motionDuration(160) + 'ms' })
+        .selector('node[type = "entry"]').style({ 'background-color': c('--color-accent-soft'), 'border-color': c('--color-accent'), color: c('--color-accent') })
+        .selector('node[type = "import"]').style({ 'background-color': c('--color-import-soft'), 'border-color': c('--color-import'), color: c('--color-import') })
+        .selector('node.interest').style({ 'border-color': c('--color-risk'), 'border-width': 1.5 })
+        .selector('node.onpath').style({ 'background-color': c('--color-accent-soft'), 'border-color': c('--color-accent') })
+        .selector('node:selected').style({ 'background-color': c('--color-accent'), 'border-color': c('--color-accent'), color: c('--color-background'), 'border-width': 2 })
+        .selector('node.hover').style({ width: window.innerWidth < 600 ? 136 : 180, height: 50, 'overlay-opacity': 0 })
+        .selector('edge').style({ 'line-color': c('--color-edge'), 'target-arrow-color': c('--color-edge'), width: 1.5 })
+        .selector('edge.onpath, edge.trace-active').style({ 'line-color': c('--color-accent'), 'target-arrow-color': c('--color-accent'), width: 2.5 })
+        .selector('node.trace-active').style({ 'border-color': c('--color-accent'), 'background-color': c('--color-accent-soft'), 'overlay-opacity': 0, color: c('--color-text') })
+        .selector('node.trace-seen').style({ 'border-color': c('--color-accent') })
+        .selector('edge.trace-seen').style({ 'line-color': c('--color-accent-dim'), 'target-arrow-color': c('--color-accent-dim') })
+        .selector('node.token').style({ width: 12, height: 12, 'text-background-color': c('--color-background') })
+        .update();
 }
 
 /* ---------- collapse ---------- */
@@ -318,20 +353,19 @@ function placeNew(fresh) {
 // Only moves the camera if the given nodes aren't comfortably on screen (never zooms in)
 function revealInView(eles) {
     if (!cy || !eles.length) return;
-    const sbw = sidebarClosed() ? 0 : $('sidebar').offsetWidth;
-    const w = cy.width() - sbw, h = cy.height(), z0 = cy.zoom(), p = cy.pan(), pad = 50;
+    const w = cy.width(), h = cy.height(), z0 = cy.zoom(), p = cy.pan(), pad = 40;
     const bb = eles.boundingBox();
     const x1 = bb.x1 * z0 + p.x, x2 = bb.x2 * z0 + p.x, y1 = bb.y1 * z0 + p.y, y2 = bb.y2 * z0 + p.y;
     if (x1 >= pad && x2 <= w - pad && y1 >= pad && y2 <= h - pad) return;
     const z = Math.min(z0, (w - 2 * pad) / bb.w, (h - 2 * pad) / bb.h);
-    cy.animate({ zoom: z, pan: { x: w / 2 - z * (bb.x1 + bb.w / 2), y: h / 2 - z * (bb.y1 + bb.h / 2) } }, { duration: 250 });
+    cy.animate({ zoom: z, pan: { x: w / 2 - z * (bb.x1 + bb.w / 2), y: h / 2 - z * (bb.y1 + bb.h / 2) } }, { duration: motionDuration(250) });
 }
 
 function runLayout(cb) {
     const l = cy.elements().not('.token').layout({
         name: typeof dagre !== 'undefined' ? 'dagre' : 'breadthfirst',
-        rankDir: 'TB', nodeSep: 40, rankSep: 70, padding: 40,
-        animate: true, animationDuration: 250, fit: visible.size <= 14
+        rankDir: window.innerWidth < 600 ? 'TB' : 'LR', nodeSep: window.innerWidth < 600 ? 20 : 28, rankSep: 64, padding: window.innerWidth < 600 ? 20 : 60,
+        animate: !reducedMotion.matches, animationDuration: motionDuration(400), fit: true
     });
     if (cb) l.one('layoutstop', cb);
     l.run();
@@ -345,10 +379,15 @@ function resetView() {
     $('detail').classList.add('hidden');
     $('intro').classList.remove('hidden');
     $('searchInput').value = '';
+    functionFilter = 'all';
+    document.querySelectorAll('[data-filter]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.filter === 'all')));
     if (!rootId) return;
-    ensureVisible([rootId, ...(out.get(rootId) || [])]);
+    const first = out.get(rootId) || [];
+    const second = first.flatMap(id => out.get(id) || []);
+    ensureVisible(window.innerWidth < 600 ? [rootId, ...first.slice(0, 2)] : [rootId, ...first, ...second].slice(0, 22));
     runLayout();
     inspect(rootId);
+    renderFunctionList();
 }
 
 /* ---------- inspector ---------- */
@@ -419,7 +458,7 @@ function inspect(id, quiet) {
 
     const has = n.summary && n.summary !== PLACEHOLDER;
     $('aiSummary').textContent = has ? n.summary :
-        'No explanation generated yet. Run enrich.py to add one, or try reading the code below yourself first.';
+        'No AI summary is available for this function. Explore its connections and decompiled source below.';
     $('aiSummary').className = 'leading-relaxed whitespace-pre-line ' + (has ? 'text-slate-100' : 'text-sm text-slate-500 italic');
 
     $('connCount').textContent = '· ' + (inn.get(id) || []).length + ' in, ' + (out.get(id) || []).length + ' out';
@@ -452,16 +491,19 @@ function inspect(id, quiet) {
 
     cy.$(':selected').unselect();
     cy.getElementById(id).select();
+    document.querySelectorAll('.function-item').forEach(b => b.setAttribute('aria-current', String(b.dataset.id === id)));
     return added;
 }
 
 function focusNode(id) {
+    if (!cy || !nodes.has(id)) return;
     const before = new Set(visible);
     ensureVisible([id]);
     inspect(id);
     const fresh = [...visible].filter(n => !before.has(n));
     if (fresh.length) placeNew(fresh);
-    cy.animate({ center: { eles: cy.getElementById(id) } }, { duration: 250 });
+    openSidebar();
+    cy.animate({ center: { eles: cy.getElementById(id) } }, { duration: motionDuration(250) });
 }
 
 /* ---------- animated trace ---------- */
@@ -634,6 +676,7 @@ function setupTrace() {
     $('traceSelect').classList.toggle('hidden', !!liveCfg);
     $('liveBar').classList.toggle('hidden', !liveCfg);
     $('traceBtn').title = liveCfg ? 'Run the program with this input and animate it' : 'Animate the selected trace';
+    $('traceBtn').disabled = !liveCfg && sel.disabled;
     traceClear();
 }
 
@@ -669,7 +712,8 @@ function traceStart(events, autoplay) {
         const involved = cy.nodes().filter(n => prep.ids.has(n.id()));
         involved.removeClass('trace-off');
         prep.edges.forEach(id => cy.getElementById(id).removeClass('trace-off'));
-        cy.animate({ fit: { eles: involved, padding: 70 }, duration: 300 });
+        if ($('traceFollow').checked) followTraceNode(prep.list.find(e => e.a)?.a);
+        else cy.animate({ fit: { eles: involved, padding: 70 }, duration: motionDuration(300) });
         updateTraceBtns();
         if (autoplay) setTimeout(() => { if (run === trace.run) tracePlay(); }, 350);
     };
@@ -699,7 +743,7 @@ async function traceStep() {
     const run = trace.run;
     const e = trace.events[trace.i++];
     try { await applyEvent(e, run); }
-    finally { if (run === trace.run) trace.busy = false; }
+    finally { if (run === trace.run) { trace.busy = false; updateTraceBtns(); } }
 }
 
 async function moveToken(fromId, toId, label, color, edgeId, run) {
@@ -710,7 +754,7 @@ async function moveToken(fromId, toId, label, color, edgeId, run) {
         classes: 'token', selectable: false, grabbable: false });
     const edge = cy.getElementById(edgeId);
     edge.addClass('trace-active');
-    await tok.animation({ position: { ...to.position() }, duration: Math.max(200, traceSpeed() * 0.55), easing: 'ease-in-out' })
+    await tok.animation({ position: { ...to.position() }, duration: reducedMotion.matches ? 1 : Math.max(200, traceSpeed() * 0.55), easing: 'ease-in-out' })
         .play().promise('completed');
     if (run !== trace.run) return;
     edge.removeClass('trace-active');
@@ -721,7 +765,17 @@ function setActive(id) {
     cy.nodes('.trace-active').removeClass('trace-active');
     if (!id) return;
     cy.getElementById(id).addClass('trace-active');
-    if ($('traceFollow').checked) inspect(id, true);
+    if ($('traceFollow').checked) { inspect(id, true); followTraceNode(id); }
+}
+
+function followTraceNode(id) {
+    if (!id || !cy) return;
+    const node = cy.getElementById(id);
+    if (!node.length) return;
+    const zoom = Math.max(cy.zoom(), window.innerWidth < 600 ? 0.85 : 1);
+    const p = node.position();
+    cy.stop();
+    cy.animate({ zoom, pan: { x: cy.width() / 2 - p.x * zoom, y: cy.height() / 2 - p.y * zoom } }, { duration: motionDuration(250) });
 }
 
 // the user may have collapsed part of the graph since the trace started; bring back what this step needs
@@ -758,6 +812,7 @@ async function applyEvent(e, run) {
         r.className = 'rounded-lg border px-3 py-2 text-center font-bold tracking-wide ' + END_STYLE[level];
     }
     renderStack();
+    updateTraceBtns();
 }
 
 function addLog(e) {
@@ -817,13 +872,18 @@ function renderStack() {
 
 function updateTraceBtns() {
     const finished = trace.active && trace.i >= trace.events.length;
-    $('tracePlay').textContent = trace.playing ? '⏸ Pause' : (finished ? '↻ Replay' : '▶ Play');
+    $('tracePlay').textContent = trace.playing ? 'Pause' : (finished ? 'Replay' : 'Play');
+    $('traceStep').disabled = trace.busy || finished || (!trace.active && $('traceSelect').disabled);
+    $('tracePlay').disabled = !trace.active && $('traceSelect').disabled;
+    if ($('traceProgress')) $('traceProgress').textContent = trace.active ? `${trace.i} / ${trace.events.length} events` : 'Ready';
+    if ($('statusText')) $('statusText').textContent = liveBusy ? 'Running under gdb' : trace.playing ? 'Following execution' : finished ? 'Trace complete' : 'Ready to explore';
+    $('tracePanel').classList.toggle('is-playing', trace.playing);
 }
 
 function setTracePanel(open) {
     $('tracePanel').classList.toggle('hidden', !open);
     if (!open) traceClear();
-    if (cy) cy.resize();
+    if (cy) { cy.resize(); fitGraph(); }
 }
 
 $('traceBtn').addEventListener('click', () => {
@@ -844,6 +904,10 @@ $('traceStep').addEventListener('click', async () => {
     updateTraceBtns();
 });
 $('traceReset').addEventListener('click', traceClear);
+$('traceFollow').addEventListener('change', () => {
+    if ($('traceFollow').checked) followTraceNode(trace.stack.at(-1) || rootId);
+    else fitGraph();
+});
 
 /* ---------- interest (red highlighting) ---------- */
 function computeInterest() {
@@ -885,6 +949,7 @@ function applyInterest() {
 $('searchInput').addEventListener('keydown', e => {
     if (e.key !== 'Enter') return;
     const q = e.target.value.trim().toLowerCase();
+    if (!cy) return;
     cy.nodes().removeClass('match');
     if (!q) return;
     const hits = [...nodes.values()].filter(n => (n.label + ' ' + nameOf(n.id)).toLowerCase().includes(q)).map(n => n.id);
@@ -897,13 +962,16 @@ $('searchInput').addEventListener('keydown', e => {
 $('resetBtn').addEventListener('click', resetView);
 $('interestBtn').addEventListener('click', () => {
     showInterest = !showInterest;
-    $('interestBtn').textContent = '🔴 Interest: ' + (showInterest ? 'on' : 'off');
+    $('interestBtn').textContent = 'Interest ' + (showInterest ? 'on' : 'off');
+    $('interestBtn').setAttribute('aria-pressed', String(showInterest));
     applyInterest();
 });
 // "Show all" becomes "Hide all" once every node is on screen
 function updateExpandBtn() {
     const all = nodes.size > 0 && visible.size >= nodes.size;
     $('expandAllBtn').textContent = all ? 'Hide all' : 'Show all';
+    $('expandAllBtn').setAttribute('aria-label', all ? 'Hide all functions except entry' : 'Show all functions');
+    $('expandAllBtn').title = all ? 'Hide all functions except entry' : 'Show all functions';
 }
 
 // everything except main goes away
@@ -917,7 +985,7 @@ function hideAll() {
     drop.forEach(id => visible.delete(id));
     cy.elements().removeClass('faded hl');
     updateExpandBtn();
-    cy.animate({ center: { eles: cy.getElementById(rootId) } }, { duration: 250 });
+    cy.animate({ center: { eles: cy.getElementById(rootId) } }, { duration: motionDuration(250) });
 }
 
 $('expandAllBtn').addEventListener('click', () => {
@@ -928,31 +996,17 @@ $('expandAllBtn').addEventListener('click', () => {
 
 function toggleSidebar() {
     const sidebar = $('sidebar');
-    const icon = $('sidebarBtnIcon');
-
-    // Toggle slide animation (translate off-screen to the right)
     const isCollapsed = sidebar.classList.toggle('translate-x-full');
-    if (icon) icon.textContent = isCollapsed ? '◀' : '▶';
-
-    if (cy) {
-        // Stop any running camera animation
-        cy.stop();
-
-        const pan = cy.pan();
-        const zoom = cy.zoom();
-
-        // Shift camera X by half the sidebar width (325px) to keep graph centered in visible area
-        const shiftX = isCollapsed ? 325 : -325;
-
-        // Native Cytoscape animation runs at 60 FPS without canvas redraws or blinking
-        cy.animate({
-            pan: { x: pan.x + shiftX, y: pan.y },
-            zoom: zoom
-        }, {
-            duration: 300,
-            easing: 'ease-in-out-cubic'
-        });
+    if (!isCollapsed) closeNavigator();
+    $('sidebarBtn').setAttribute('aria-expanded', String(!isCollapsed));
+    $('sidebarBtn').setAttribute('aria-label', isCollapsed ? 'Show function inspector' : 'Hide function inspector');
+    sidebar.inert = isCollapsed;
+    if (window.innerWidth < 1100) {
+        sidebar.setAttribute('role', 'dialog');
+        sidebar.setAttribute('aria-modal', String(!isCollapsed));
+        if (!isCollapsed) $('inspectorClose')?.focus();
     }
+    requestAnimationFrame(() => { if (cy) { cy.resize(); fitGraph(); } });
 }
 
 function sidebarClosed() { return $('sidebar').classList.contains('translate-x-full'); }
@@ -969,6 +1023,7 @@ function setName(id, raw) {
     const c = cy && cy.getElementById(id);
     if (c && c.length) c.data('label', shortLabel(nameOf(id)));
     inspect(id, trace.busy);                                      // refresh title, chips, path and code
+    renderFunctionList();
 }
 
 const nameEl = $('funcName');
@@ -1009,7 +1064,7 @@ async function liveRun() {
     liveBusy = true;
     const btn = $('traceBtn'), label = btn.textContent;
     btn.disabled = true;
-    btn.textContent = '⏳ Running…';
+    btn.textContent = 'Running…';
     traceMessage('Running the program under gdb…', false);
     try {
         const r = await fetch('/api/trace', {
@@ -1027,6 +1082,7 @@ async function liveRun() {
         liveBusy = false;
         btn.disabled = false;
         btn.textContent = label;
+        updateTraceBtns();
     }
 }
 
@@ -1043,3 +1099,162 @@ fetch('/api/config')
         if (nodes.size) setupTrace();      // graph finished loading first: refresh the trace bar and hint
     })
     .catch(() => {});
+
+/* ---------- workbench navigation and camera ---------- */
+function updateWorkspace(data) {
+    document.body.classList.toggle('has-graph', nodes.size > 0);
+    const fields = {
+        binaryName: graphLabel,
+        nodeCount: nodes.size,
+        edgeCount: [...out.values()].reduce((sum, ids) => sum + ids.length, 0),
+        traceCount: graphTraces.length,
+        functionCount: nodes.size
+    };
+    Object.entries(fields).forEach(([id, value]) => { if ($(id)) $(id).textContent = value; });
+    if ($('statusText')) $('statusText').textContent = nodes.size ? 'Ready to explore' : 'This graph has no functions';
+    $('traceBtn').disabled = !liveCfg && $('traceSelect').disabled;
+    $('expandAllBtn').disabled = !nodes.size;
+    $('resetBtn').disabled = !nodes.size;
+    renderFunctionList();
+}
+
+function renderFunctionList() {
+    const list = $('functionList');
+    if (!list) return;
+    const query = $('searchInput').value.trim().toLowerCase();
+    const matches = [...nodes.values()].filter(n =>
+        (functionFilter === 'all' || (functionFilter === 'interest' ? interest.has(n.id) : (n.type || 'custom') === functionFilter)) &&
+        (!query || `${nameOf(n.id)} ${n.label} ${n.id}`.toLowerCase().includes(query))
+    ).sort((a, b) => (a.id === rootId ? -1 : b.id === rootId ? 1 : nameOf(a.id).localeCompare(nameOf(b.id))));
+    list.replaceChildren();
+    matches.forEach(n => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'function-item';
+        button.dataset.id = n.id;
+        button.dataset.type = n.type || 'custom';
+        button.setAttribute('aria-current', String(n.id === inspectedId));
+        button.title = nameOf(n.id) + ' · ' + n.id;
+        const mark = document.createElement('span');
+        mark.className = 'function-mark';
+        mark.textContent = n.type === 'import' ? '{}' : 'ƒ';
+        mark.setAttribute('aria-hidden', 'true');
+        const label = document.createElement('span');
+        label.className = 'function-label';
+        label.textContent = nameOf(n.id);
+        button.append(mark, label);
+        if (interest.has(n.id)) {
+            const dot = document.createElement('span');
+            dot.className = 'interest-dot';
+            dot.title = 'Flagged for closer inspection';
+            dot.setAttribute('aria-label', 'Of interest');
+            button.appendChild(dot);
+        }
+        button.addEventListener('click', () => {
+            focusNode(n.id);
+            closeNavigator();
+        });
+        list.appendChild(button);
+    });
+    if (!matches.length) {
+        const empty = document.createElement('p');
+        empty.className = 'function-empty';
+        empty.textContent = nodes.size ? 'No matching functions. Try another name or filter.' : 'Import a graph to explore its functions.';
+        list.appendChild(empty);
+    }
+    if ($('functionCount')) $('functionCount').textContent = matches.length;
+    if ($('searchFeedback')) $('searchFeedback').textContent = query ? `${matches.length} matching function${matches.length === 1 ? '' : 's'}` : '';
+}
+
+function fitGraph() {
+    if (!cy || !cy.nodes().not('.token').length) return;
+    cy.stop();
+    const elements = cy.nodes().not('.token');
+    const pad = cy.width() < 500 ? 24 : 45;
+    cy.animate({ fit: { eles: elements, padding: pad } }, { duration: motionDuration(280) });
+}
+
+function closeNavigator() {
+    $('workspace')?.classList.remove('navigator-open');
+    $('navigatorBtn')?.setAttribute('aria-expanded', 'false');
+    $('functionsNav')?.removeAttribute('aria-modal');
+    $('functionsNav')?.removeAttribute('role');
+}
+
+$('searchInput').addEventListener('input', renderFunctionList);
+document.querySelectorAll('[data-filter]').forEach(button => button.addEventListener('click', () => {
+    functionFilter = button.dataset.filter;
+    document.querySelectorAll('[data-filter]').forEach(b => b.setAttribute('aria-pressed', String(b === button)));
+    renderFunctionList();
+}));
+$('importBtn')?.addEventListener('click', () => $('fileInput').click());
+$('fitBtn')?.addEventListener('click', fitGraph);
+for (const [id, factor] of [['zoomInBtn', 1.25], ['zoomOutBtn', 0.8]]) {
+    $(id)?.addEventListener('click', () => {
+        if (cy) cy.zoom({ level: cy.zoom() * factor, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } });
+    });
+}
+$('navigatorBtn')?.addEventListener('click', () => {
+    const open = $('workspace').classList.toggle('navigator-open');
+    $('navigatorBtn').setAttribute('aria-expanded', String(open));
+    if (open) {
+        $('functionsNav').setAttribute('role', 'dialog');
+        $('functionsNav').setAttribute('aria-modal', 'true');
+        $('searchInput').focus();
+    } else closeNavigator();
+});
+$('inspectorClose')?.addEventListener('click', () => { if (!sidebarClosed()) toggleSidebar(); $('sidebarBtn').focus(); });
+$('navigatorClose')?.addEventListener('click', () => { closeNavigator(); $('navigatorBtn').focus(); });
+document.addEventListener('keydown', e => {
+    if (e.key === 'Tab' && window.innerWidth < 1100) {
+        const panel = !sidebarClosed() ? $('sidebar') : $('workspace')?.classList.contains('navigator-open') ? $('functionsNav') : null;
+        if (panel) {
+            const focusable = [...panel.querySelectorAll('button, input, select, summary, [contenteditable], [tabindex="0"]')]
+                .filter(el => !el.disabled && el.getClientRects().length);
+            const first = focusable[0], last = focusable.at(-1);
+            if (first && (!panel.contains(document.activeElement) || (e.shiftKey && document.activeElement === first) || (!e.shiftKey && document.activeElement === last))) {
+                e.preventDefault();
+                (e.shiftKey ? last : first).focus();
+            }
+        }
+    }
+    if (e.key === 'Escape') {
+        const navWasOpen = $('workspace')?.classList.contains('navigator-open');
+        $('searchInput').value = '';
+        renderFunctionList();
+        closeNavigator();
+        if (navWasOpen) $('navigatorBtn')?.focus();
+        if (window.innerWidth < 1100 && !sidebarClosed()) { toggleSidebar(); $('sidebarBtn').focus(); }
+    }
+    if (e.target.closest('input, select, textarea, [contenteditable]')) return;
+    if (e.key === '/') {
+        e.preventDefault();
+        $('workspace')?.classList.add('navigator-open');
+        $('navigatorBtn')?.setAttribute('aria-expanded', 'true');
+        if (window.innerWidth < 1100) {
+            $('functionsNav').setAttribute('role', 'dialog');
+            $('functionsNav').setAttribute('aria-modal', 'true');
+        }
+        $('searchInput').focus();
+    }
+    if (e.key.toLowerCase() === 'f') fitGraph();
+});
+if (window.innerWidth < 1100) {
+    $('sidebar').classList.add('translate-x-full');
+    $('sidebar').inert = true;
+    $('sidebarBtn').setAttribute('aria-expanded', 'false');
+    $('sidebarBtn').setAttribute('aria-label', 'Show function inspector');
+}
+new ResizeObserver(() => { if (cy) cy.resize(); }).observe($('cy'));
+window.matchMedia('(min-width: 1100px)').addEventListener('change', event => {
+    if (event.matches) {
+        $('sidebar').removeAttribute('role');
+        $('sidebar').removeAttribute('aria-modal');
+        closeNavigator();
+    } else if (!sidebarClosed()) {
+        closeNavigator();
+        $('sidebar').setAttribute('role', 'dialog');
+        $('sidebar').setAttribute('aria-modal', 'true');
+        $('inspectorClose')?.focus();
+    }
+});

@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>reView – Reverse Engineering for Beginners</title>
+    <meta name="theme-color" content="#111513">
+    <title>reView · Binary analysis workspace</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@300..800&family=Martian+Mono:wght@100..800&display=swap"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@300..800&family=Martian+Mono:wght@100..800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -29,259 +29,310 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
     <link href="styles.css" rel="stylesheet">
 </head>
-<body class="h-full flex flex-col font-sans overflow-hidden">
+<body class="h-full font-sans">
+<input id="fileInput" type="file" accept=".json,application/json" class="hidden" aria-label="Choose a reView graph file">
 
-<!-- Hidden file input to prevent app.js null errors -->
-<input id="fileInput" type="file" accept=".json,application/json" class="hidden">
-
-<header class="h-16 shrink-0 border-b border-slate-800 bg-slate-900/80 px-5 flex items-center justify-between">
-    <!-- Left Group: Branding + Action Buttons -->
-    <div class="flex items-center space-x-4">
-        <!-- Branding -->
-        <div class="flex items-center space-x-3 pr-2 border-r border-slate-800">
-            <h1 class="text-base font-bold tracking-wide text-white">reView</h1>
-            <span class="text-xs bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded font-mono border border-slate-700">RE for beginners</span>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex items-center space-x-2">
-            <button id="interestBtn" title="Toggle red highlighting of functions worth a closer look" class="btn text-sm">🔴
-                Interest: on
-            </button>
-            <button id="expandAllBtn" class="btn text-sm">Show all</button>
-            <button id="resetBtn" class="btn text-sm">Reset</button>
-        </div>
-
-        <!-- Trace controls -->
-        <div id="traceBar" class="flex items-center space-x-2 pl-3 border-l border-slate-800">
-            <select id="traceSelect" title="Which trace to play"
-                    class="w-64 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:border-cyan-500"></select>
-            <div id="liveBar" class="hidden flex items-center space-x-2 pl-2 border-l border-slate-800">
-                <select id="liveMode" title="How the input is given to the program"
-                        class="bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-sm">
-                    <option value="args">args</option>
-                    <option value="stdin">stdin</option>
-                </select>
-                <input id="liveInput" placeholder="e.g. AREV3RSZ" spellcheck="false" maxlength="256"
-                       class="w-64 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:border-cyan-500">
+<div class="app-shell">
+    <header class="masthead">
+        <div class="brand-lockup">
+            <div class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 36 36" fill="none">
+                    <path d="M8 10.5 18 5l10 5.5v11L18 27l-10-5.5v-11Z" stroke="currentColor" stroke-width="1.4"/>
+                    <path d="m8.5 10.8 9.5 5.4 9.5-5.4M18 16.2v10.3M8.5 21.5 18 16.2l9.5 5.3" stroke="currentColor" stroke-width="1.25"/>
+                    <circle cx="18" cy="16.2" r="2.15" fill="#BDEBD8"/>
+                    <circle cx="8.5" cy="10.8" r="1.55" fill="#BDEBD8"/>
+                    <circle cx="27.5" cy="21.5" r="1.55" fill="#BDEBD8"/>
+                </svg>
             </div>
-            <button id="traceBtn" title="Animate a run of the program through the call graph"
-                    class="btn btn-primary text-sm">▶ Trace
+            <div class="brand-copy">
+                <h1>reView</h1>
+                <p>Binary analysis workspace</p>
+            </div>
+        </div>
+        <div class="masthead-actions">
+            <button id="sidebarBtn" class="inspector-toggle" type="button" title="Show or hide the function inspector" aria-label="Hide function inspector" aria-controls="sidebar" aria-expanded="true">
+                <span id="sidebarBtnIcon" class="toggle-glyph" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M12 3v14" stroke="currentColor" stroke-width="1.5"/></svg>
+                </span>
+                <span class="inspector-toggle-label">Inspector</span>
+            </button>
+            <button id="importBtn" class="btn btn-import" type="button" title="Import a reView graph JSON file">
+                <svg viewBox="0 0 20 20" aria-hidden="true" fill="none"><path d="M10 3.5v8m0 0 3-3m-3 3-3-3M4 13.5v2A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Import graph</span>
             </button>
         </div>
-    </div>
+    </header>
 
-
-    <div id="searchContainer" class="flex items-center">
-        <input id="searchInput" type="text" placeholder="Search a function, press Enter…"
-               class="w-72 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-indigo-500">
-    </div>
-</header>
-
-<div class="flex-1 flex relative overflow-hidden">
-
-    <!-- Left Column: Graph + Trace Panel (Expands dynamically when sidebar closes) -->
-    <div class="flex-1 flex flex-col min-w-0">
-        <div class="flex-1 relative bg-slate-950">
-
-            <div id="cy" class="absolute inset-0"></div>
-            <div id="tip"
-                 class="hidden absolute z-20 pointer-events-none max-w-xs bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm shadow-xl"></div>
-
-            <details
-                    class="absolute left-3 bottom-3 bg-slate-900/90 border border-slate-800 rounded-lg px-3.5 py-2.5 text-sm font-mono"
-            >
-                <summary class="font-semibold text-slate-300 py-1 cursor-pointer">Legend</summary>
-                <div class="space-y-2 mt-2">
-                    <div class="flex items-center space-x-2"><span
-                            class="h-3 w-3 rounded-sm bg-emerald-700 border border-emerald-400"></span><span>entry point</span>
-                    </div>
-                    <div class="flex items-center space-x-2"><span
-                            class="h-3 w-3 rounded-sm bg-slate-700 border border-slate-400"></span><span>program's own code</span>
-                    </div>
-                    <div class="flex items-center space-x-2"><span
-                            class="h-3 w-3 rounded-sm bg-blue-900 border border-blue-400"></span><span>library import</span>
-                    </div>
-                    <div class="flex items-center space-x-2"><span
-                            class="h-3 w-3 rounded-sm bg-amber-900 border border-amber-400"></span><span>path from main</span>
-                    </div>
-                    <div class="flex items-center space-x-2"><span
-                            class="h-3 w-3 rounded-sm bg-slate-600 border-2 border-white"></span><span>selected</span>
-                    </div>
-                    <div class="flex items-center space-x-2"><span
-                            class="h-3 w-3 rounded-sm bg-slate-800 border border-red-500 shadow-[0_0_6px_1px_rgba(239,68,68,0.8)]"></span><span>of interest</span>
-                    </div>
-                    <div class="text-slate-500 pt-1 text-xs">arrow = "calls"</div>
-                </div>
-            </details>
-
-            <div id="loadMsg" class="hidden absolute inset-0 flex items-center justify-center bg-slate-950/95 z-10">
-                <div class="max-w-md text-center space-y-3 p-6">
-                    <h2 class="text-lg font-bold">Couldn't load graph.json</h2>
-                    <p id="loadErr" class="text-sm font-mono text-rose-400"></p>
-                    <p class="text-sm text-slate-400">Browsers block <span class="font-mono">fetch()</span> on files
-                        opened directly. Serve this folder with
-                        <span class="font-mono text-slate-200">python3 -m http.server</span>.</p>
-                </div>
+    <section class="dataset-strip" aria-label="Current binary details">
+        <div class="dataset-file">
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 2.75h6l3.25 3.3v10.2a1 1 0 0 1-1 1h-8.25a1 1 0 0 1-1-1v-12.5a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.2"/><path d="M11.25 2.9v3.55h3.3M7.25 10h5.5M7.25 12.75h5.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <div class="dataset-name-wrap">
+                <span class="dataset-caption">Current binary</span>
+                <strong id="binaryName">No binary loaded</strong>
             </div>
         </div>
+        <dl class="dataset-stats">
+            <div><dt>Functions</dt><dd id="nodeCount">?</dd></div>
+            <div><dt>Call edges</dt><dd id="edgeCount">?</dd></div>
+            <div><dt>Traces</dt><dd id="traceCount">?</dd></div>
+        </dl>
+    </section>
 
-        <section id="tracePanel" class="hidden shrink-0 h-80 border-t border-slate-800 bg-slate-900 flex flex-col text-sm">
-            <!-- Slim control strip: the step-by-step log below is the main event -->
-            <div class="shrink-0 flex items-center gap-2 px-3.5 py-2 border-b border-slate-800 bg-slate-950/40">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1">Execution Trace</h3>
-                <button id="tracePlay" class="btn btn-sm">▶ Play</button>
-                <button id="traceStep" class="btn btn-sm">Step ▸</button>
-                <button id="traceReset" class="btn btn-sm">Reset</button>
-                <select id="traceSpeed" class="bg-slate-950 border border-slate-800 rounded-md px-2 py-1.5 text-sm">
-                    <option value="slow">Slow</option>
-                    <option value="normal" selected>Normal</option>
-                    <option value="fast">Fast</option>
-                </select>
-                <label class="flex items-center gap-1.5 text-slate-400 text-xs ml-2">
-                    <input id="traceFollow" type="checkbox" checked> Follow active node
-                </label>
-                <button id="traceClose" class="ml-auto text-slate-500 hover:text-slate-300" title="Close">✕</button>
+    <main id="workspace" class="workspace">
+        <nav id="functionsNav" class="functions-nav" aria-label="Function navigator">
+            <div class="nav-heading">
+                <div>
+                    <h2>Functions</h2>
+                    <span id="functionCount" class="function-count">Waiting for graph</span>
+                </div>
+                <span class="nav-heading-mark" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none"><path d="M4 5h12M4 10h8M4 15h10" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/><circle cx="15" cy="10" r="1.5" fill="currentColor"/></svg>
+                </span>
+                <button id="navigatorClose" class="navigator-close" type="button" aria-label="Close function navigator"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15" stroke="currentColor" stroke-width="1.5"/></svg></button>
             </div>
+            <div id="searchContainer" class="search-field">
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="8.75" cy="8.75" r="5.75" stroke="currentColor" stroke-width="1.4"/><path d="m13 13 4 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                <input id="searchInput" type="search" autocomplete="off" placeholder="Find a function" aria-label="Search functions">
+                <kbd>↵</kbd>
+            </div>
+            <div class="function-filters" role="group" aria-label="Filter functions">
+                <button type="button" data-filter="all" aria-pressed="true">All</button>
+                <button type="button" data-filter="custom" aria-pressed="false">Program</button>
+                <button type="button" data-filter="import" aria-pressed="false">Imports</button>
+                <button type="button" data-filter="interest" aria-pressed="false">Interest</button>
+            </div>
+            <p id="searchFeedback" class="search-feedback" aria-live="polite"></p>
+            <div id="functionList" class="function-list" aria-label="Functions in the current binary"></div>
+            <div class="nav-footnote">
+                <span class="status-pip" aria-hidden="true"></span>
+                <span>Choose a function to inspect its call path</span>
+            </div>
+        </nav>
 
-            <div class="flex-1 min-h-0 grid grid-cols-[minmax(0,1fr)_220px] divide-x divide-slate-800">
-                <div class="p-4 overflow-y-auto space-y-2" id="traceLog"></div>
-                <div class="p-3.5 overflow-y-auto space-y-3">
-                    <div id="traceResult" class="hidden"></div>
+        <section class="canvas-column" aria-labelledby="canvasHeading">
+            <div class="canvas-toolbar">
+                <div class="canvas-title-group">
+                    <button id="navigatorBtn" class="mobile-nav-toggle" type="button" title="Open function navigator" aria-label="Open function navigator" aria-controls="functionsNav" aria-expanded="false">
+                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.5 5h13M3.5 10h13M3.5 15h13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    </button>
                     <div>
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Call stack</h3>
-                        <div id="traceStack" class="space-y-1 font-mono text-sm"></div>
+                        <h2 id="canvasHeading">See what happens inside.</h2>
+                        <p>Follow the calls that make a program work.</p>
+                    </div>
+                </div>
+                <div class="canvas-actions" role="group" aria-label="Graph actions">
+                    <button id="interestBtn" class="tool-chip interest-toggle" type="button" aria-pressed="true" title="Toggle highlighting for functions worth a closer look">
+                        <span class="interest-dot" aria-hidden="true"></span><span>Interest</span>
+                    </button>
+                    <button id="expandAllBtn" class="tool-button" type="button" title="Show all functions" aria-label="Show all functions">
+                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.75 7.25V3.75h3.5m5.5 0h3.5v3.5m0 5.5v3.5h-3.5m-5.5 0h-3.5v-3.5M7 10h6M10 7v6" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span class="action-label">Show all</span>
+                    </button>
+                    <button id="resetBtn" class="tool-button" type="button" title="Reset the graph view" aria-label="Reset graph view">
+                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.2 8A6 6 0 1 1 4 11.5M4.2 8V4.5m0 3.5h3.5" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span class="action-label">Reset</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="traceBar" class="trace-launch" aria-label="Trace controls">
+                <span class="trace-launch-icon" aria-hidden="true">
+                    <svg viewBox="0 0 20 20" fill="none"><path d="M3.5 10h3l2-5 3.2 10 2.1-5h2.7" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </span>
+                <label class="trace-select-wrap" for="traceSelect"><span>Run trace</span>
+                    <select id="traceSelect" title="Choose a saved execution trace" aria-label="Choose a saved execution trace"></select>
+                </label>
+                <div id="liveBar" class="live-controls hidden">
+                    <label class="visually-hidden" for="liveMode">Input mode</label>
+                    <select id="liveMode" title="How input is given to the program" aria-label="Input mode">
+                        <option value="args">Arguments</option>
+                        <option value="stdin">Standard input</option>
+                    </select>
+                    <label class="visually-hidden" for="liveInput">Program input</label>
+                    <input id="liveInput" placeholder="Enter input…" spellcheck="false" maxlength="256">
+                </div>
+                <button id="traceBtn" class="trace-button" type="button" title="Animate the selected execution trace">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7 4.75a.7.7 0 0 0-1.05.61v9.28a.7.7 0 0 0 1.05.61l7.3-4.64a.72.72 0 0 0 0-1.22L7 4.75Z" fill="currentColor"/></svg>
+                    <span>Trace</span>
+                </button>
+            </div>
+
+            <div class="graph-stage">
+                <div class="graph-canvas" aria-label="Function call graph">
+                    <div id="cy" class="graph-renderer"></div>
+                    <div id="tip" class="hidden graph-tip" role="tooltip"></div>
+                    <div class="canvas-empty" aria-hidden="true">
+                        <svg viewBox="0 0 400 245" fill="none">
+                            <path d="M92 122 165 70l82 43 63-53M92 122l70 66 85-75 66 64" stroke="#54675f" stroke-width="1.2" stroke-dasharray="3 7"/>
+                            <path d="M167 70 160 49M247 113l40-25M247 113l36 31M162 188l-23 16" stroke="#708078" stroke-width="1.15"/>
+                            <rect x="47" y="105" width="90" height="34" rx="8" fill="#202a26" stroke="#92c8b0" stroke-width="1.3"/>
+                            <rect x="132" y="53" width="74" height="34" rx="8" fill="#202a26" stroke="#728b80" stroke-width="1.1"/>
+                            <rect x="210" y="96" width="74" height="34" rx="8" fill="#202a26" stroke="#bdebd8" stroke-width="1.4"/>
+                            <rect x="274" y="35" width="78" height="34" rx="8" fill="#28232d" stroke="#b9a5d0" stroke-width="1.1"/>
+                            <rect x="273" y="158" width="78" height="34" rx="8" fill="#202a26" stroke="#728b80" stroke-width="1.1"/>
+                            <rect x="126" y="171" width="74" height="34" rx="8" fill="#28232d" stroke="#b9a5d0" stroke-width="1.1"/>
+                            <circle cx="92" cy="122" r="2.5" fill="#bdebd8"/><circle cx="169" cy="70" r="2.5" fill="#bdebd8"/>
+                            <circle cx="247" cy="113" r="2.5" fill="#bdebd8"/><circle cx="312" cy="52" r="2.5" fill="#b9a5d0"/>
+                            <text x="92" y="126" fill="#e8f1ed" font-family="Martian Mono, monospace" font-size="9" text-anchor="middle">entry</text>
+                            <text x="169" y="74" fill="#d6e2dc" font-family="Martian Mono, monospace" font-size="9" text-anchor="middle">parse</text>
+                            <text x="247" y="117" fill="#e8f1ed" font-family="Martian Mono, monospace" font-size="9" text-anchor="middle">check</text>
+                            <text x="313" y="56" fill="#e0d4eb" font-family="Martian Mono, monospace" font-size="9" text-anchor="middle">import</text>
+                            <text x="312" y="179" fill="#d6e2dc" font-family="Martian Mono, monospace" font-size="9" text-anchor="middle">branch</text>
+                            <text x="163" y="192" fill="#e0d4eb" font-family="Martian Mono, monospace" font-size="9" text-anchor="middle">library</text>
+                        </svg>
+                        <p>Import a graph to explore its call paths.</p>
+                    </div>
+                    <div id="loadMsg" class="hidden load-message" role="alert" aria-live="assertive">
+                        <div class="load-message-mark" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none"><path d="M12 8v5m0 3h.01M10.3 3.85 2.8 17a1.7 1.7 0 0 0 1.48 2.55h15.44A1.7 1.7 0 0 0 21.2 17l-7.5-13.15a1.95 1.95 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </div>
+                        <h3>Graph could not be loaded</h3>
+                        <p id="loadErr" class="load-error"></p>
+                        <p>Serve this folder over HTTP so the browser can read <code>graph.json</code>, or import a graph file.</p>
+                    </div>
+                    <div class="graph-legend" aria-label="Graph legend">
+                        <span><i class="legend-mark legend-entry"></i>Entry</span>
+                        <span><i class="legend-mark legend-program"></i>Program</span>
+                        <span><i class="legend-mark legend-import"></i>Import</span>
+                        <span><i class="legend-mark legend-path"></i>Call path</span>
+                        <span><i class="legend-mark legend-interest"></i>Interest</span>
+                        <span class="legend-arrow"><svg viewBox="0 0 20 8" aria-hidden="true"><path d="M1 4h15m0 0-3-3m3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>calls</span>
+                    </div>
+                    <div class="zoom-controls" role="group" aria-label="Graph zoom">
+                        <button id="zoomOutBtn" type="button" title="Zoom out" aria-label="Zoom out"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.5 10h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+                        <output id="zoomValue" aria-live="polite">100%</output>
+                        <button id="zoomInBtn" type="button" title="Zoom in" aria-label="Zoom in"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4.5 10h11M10 4.5v11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+                        <span class="zoom-divider" aria-hidden="true"></span>
+                        <button id="fitBtn" class="fit-button" type="button" title="Fit graph to view"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7.25 3.75h-3.5v3.5m9-3.5h3.5v3.5m0 5.5v3.5h-3.5m-5.5 0h-3.5v-3.5" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Fit</span></button>
                     </div>
                 </div>
             </div>
+
+            <section id="tracePanel" class="hidden trace-panel" aria-label="Execution trace">
+                <div class="trace-panel-head">
+                    <div class="trace-panel-title"><span class="trace-live-indicator" aria-hidden="true"></span><h3>Execution trace</h3><span id="traceProgress" class="trace-progress" aria-live="polite"></span></div>
+                    <div class="trace-playback" role="group" aria-label="Trace playback controls">
+                        <button id="tracePlay" class="trace-control trace-play" type="button"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7 4.75a.7.7 0 0 0-1.05.61v9.28a.7.7 0 0 0 1.05.61l7.3-4.64a.72.72 0 0 0 0-1.22L7 4.75Z" fill="currentColor"/></svg><span>Play</span></button>
+                        <button id="traceStep" class="trace-control" type="button">Step <span aria-hidden="true">›</span></button>
+                        <button id="traceReset" class="trace-control" type="button">Reset</button>
+                        <label class="trace-speed-label" for="traceSpeed">Speed</label>
+                        <select id="traceSpeed" aria-label="Trace playback speed">
+                            <option value="slow">Slow</option><option value="normal" selected>Normal</option><option value="fast">Fast</option>
+                        </select>
+                        <label class="trace-follow" for="traceFollow"><input id="traceFollow" type="checkbox" checked> Follow node</label>
+                    </div>
+                    <button id="traceClose" class="trace-close" type="button" title="Close trace panel" aria-label="Close trace panel">
+                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5.5 5.5 9 9m0-9-9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    </button>
+                </div>
+                <div class="trace-panel-body">
+                    <div id="traceLog" class="trace-log" aria-live="polite"></div>
+                    <aside class="trace-side-info">
+                        <div id="traceResult" class="hidden"></div>
+                        <div><h4>Call stack</h4><div id="traceStack" class="trace-stack"></div></div>
+                    </aside>
+                </div>
+            </section>
         </section>
 
-        <aside id="sidebar"
-               class="fixed top-16 bottom-0 right-0 w-[650px] border-l border-slate-800 bg-slate-900 flex flex-col transition-transform duration-300 z-40 translate-x-full">
-
-            <!-- Peeking Pull-Tab Handle -->
-            <button id="sidebarBtn" title="Toggle Inspector Panel"
-                    class="absolute -left-9 top-1/2 -translate-y-1/2 w-9 h-20 bg-slate-800 hover:bg-slate-700 border-y border-l border-slate-700 rounded-l-xl flex items-center justify-center text-slate-300 shadow-2xl cursor-pointer z-50">
-                <span id="sidebarBtnIcon" class="text-sm font-bold">◀</span>
-            </button>
-
-            <!-- Header Bar -->
-            <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 shrink-0">
-                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Inspector Panel</span>
+        <aside id="sidebar" class="inspector-panel" aria-label="Function inspector">
+            <div class="inspector-head">
+                <div class="inspector-title-wrap">
+                    <span class="inspector-symbol" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M4 4.5h12v11H4zM7 8h6M7 11h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                    <div><h2>Function inspector</h2><p>Understand one piece at a time</p></div>
+                </div>
+                <button id="inspectorClose" class="inspector-close" type="button" title="Close inspector" aria-label="Close function inspector">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5.5 5.5 9 9m0-9-9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </button>
             </div>
 
-            <!-- Intro Panel Content -->
-            <div id="intro" class="flex-1 overflow-y-auto p-5 space-y-4 text-sm text-slate-300">
-                <h2 class="text-base font-bold text-white">How to read this</h2>
-                <p>This graph shows which functions call which. Starting from <span
-                        class="font-mono text-emerald-400">main</span> is the easiest way into any program.</p>
-                <ol class="list-decimal list-inside space-y-2 text-slate-300">
-                    <li>Click a function to read its decompiled C.</li>
-                    <li>Clicking also reveals its callers and callees.</li>
-                    <li>Work out what the small leaf functions do first.</li>
-                    <li>Then go back up and see how they combine.</li>
-                    <li><span class="text-red-400 font-semibold">Red glow</span> marks functions worth a closer look. It's a
-                        heuristic, and the sidebar says why.
-                    </li>
+            <div id="intro" class="inspector-intro">
+                <h3>Start with a function.</h3>
+                <p>Each box is one function. Arrows show where it hands work next. Pick a function to read its decompiled C and follow its connections.</p>
+                <div class="intro-diagram" role="img" aria-label="Example call graph: entry calls a program function, which calls an import">
+                    <svg viewBox="0 0 320 104" fill="none" aria-hidden="true">
+                        <path d="M73 52h63m0 0 28-27m-28 27 28 27h78" stroke="#718279" stroke-width="1.2"/>
+                        <path d="m130 48 6 4-6 4m29-34 5 7-8-1m8 48-5 7 8-1m24-27h20m0 0-6-4m6 4-6 4" stroke="#9aafa3" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <rect x="10" y="37" width="64" height="30" rx="7" fill="#202a26" stroke="#a4d4bf" stroke-width="1.2"/>
+                        <rect x="136" y="37" width="68" height="30" rx="7" fill="#202a26" stroke="#bdebd8" stroke-width="1.3"/>
+                        <rect x="228" y="37" width="78" height="30" rx="7" fill="#28232d" stroke="#b9a5d0" stroke-width="1.2"/>
+                        <text x="42" y="56" fill="#e7f0eb" font-size="9" font-family="Martian Mono, monospace" text-anchor="middle">entry</text>
+                        <text x="170" y="56" fill="#e7f0eb" font-size="9" font-family="Martian Mono, monospace" text-anchor="middle">program</text>
+                        <text x="267" y="56" fill="#e1d7eb" font-size="9" font-family="Martian Mono, monospace" text-anchor="middle">import</text>
+                    </svg>
+                    <div class="diagram-caption"><span>call direction</span><span>caller → callee</span></div>
+                </div>
+                <ol class="intro-steps">
+                    <li><span>1</span><p>Select a node to inspect its code and connections.</p></li>
+                    <li><span>2</span><p>Reveal callers and callees as you follow the graph.</p></li>
+                    <li><span>3</span><p>Use the call path to return to the entry point.</p></li>
                 </ol>
+                <div class="intro-note"><span class="intro-note-mark" aria-hidden="true">!</span><p>Coral highlights mark functions worth a closer look. The inspector explains why.</p></div>
             </div>
 
-            <!-- Detail Inspector Content -->
-            <div id="detail" class="hidden flex-1 overflow-y-auto p-5 space-y-5">
-                <!-- Identity: what is this thing? -->
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2.5">
-                        <span id="funcTypeBadge" class="text-xs font-mono tracking-wider uppercase border px-2 py-0.5 rounded"></span>
-                        <span id="funcAddr" class="text-xs font-mono text-slate-500"></span>
+            <div id="detail" class="hidden inspector-detail">
+                <div class="function-identity">
+                    <div class="identity-meta"><span id="funcTypeBadge" class="function-type-badge"></span><span id="funcAddr" class="function-address"></span></div>
+                    <div class="identity-name-line">
+                        <h3 id="funcName" contenteditable="plaintext-only" spellcheck="false" title="Click to rename. Enter saves, Escape cancels." aria-label="Function name, editable"></h3>
+                        <button id="renameReset" class="btn btn-sm hidden" type="button" title="Restore the original name" aria-label="Restore original function name">↺</button>
                     </div>
-                    <div class="flex items-start gap-2">
-                        <h2 id="funcName" contenteditable="plaintext-only" spellcheck="false"
-                            title="Click to rename. Enter saves, Esc cancels."
-                            class="flex-1 min-w-0 text-2xl font-bold font-mono text-white break-all leading-tight rounded-md px-1.5 -mx-1.5 border border-transparent hover:border-slate-700 focus:border-cyan-500 focus:bg-slate-950 focus:outline-none cursor-text"></h2>
-                        <button id="renameReset" class="btn btn-sm hidden" title="Restore the original name">↺</button>
-                    </div>
-                    <p id="origName" class="hidden text-xs font-mono text-slate-500"></p>
-                    <p class="text-[11px] text-slate-600">✎ Click the name to rename it. The new name shows in the graph, trace and decompiled code.</p>
-                    <p id="typeInfo" class="text-[13px] text-slate-400 leading-relaxed"></p>
+                    <p id="origName" class="hidden original-name"></p>
+                    <p class="rename-hint">Click the name to rename it. The new name appears across the graph and trace.</p>
+                    <p id="typeInfo" class="type-info"></p>
                 </div>
 
-                <!-- Primary: what does it do? -->
                 <details class="sect sect-primary" open>
-                    <summary class="text-sm font-semibold">Function Summary</summary>
-                    <div class="sect-body">
-                        <p id="aiSummary" class="leading-relaxed whitespace-normal break-words"></p>
-                    </div>
+                    <summary>Function summary</summary>
+                    <div class="sect-body"><p id="aiSummary" class="summary-copy"></p></div>
                 </details>
 
                 <details id="whyBox" class="sect sect-warn hidden" open>
-                    <summary class="text-sm font-semibold">⚑ Why this looks interesting</summary>
-                    <ul id="whyList"
-                        class="sect-body list-disc list-inside space-y-1.5 text-sm text-slate-200 leading-relaxed"></ul>
+                    <summary>Why this looks interesting</summary>
+                    <ul id="whyList" class="sect-body"></ul>
                 </details>
 
-                <!-- Context: where does it sit? -->
                 <details class="sect" open>
-                    <summary class="text-sm font-semibold">Call path from main</summary>
-                    <div id="pathBox" class="sect-body flex flex-wrap items-center gap-2 text-sm"></div>
+                    <summary>Call path from entry</summary>
+                    <div id="pathBox" class="sect-body path-chips"></div>
                 </details>
 
                 <details class="sect">
-                    <summary class="text-sm font-semibold"><span>Connections <span id="connCount"
-                                                                                   class="ml-1 normal-case tracking-normal font-normal text-slate-500"></span></span></summary>
-                    <div class="sect-body grid grid-cols-2 gap-4">
-                        <div>
-                            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Called by</h3>
-                            <div id="callers" class="flex flex-wrap gap-1.5 text-sm"></div>
-                        </div>
-                        <div>
-                            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Calls</h3>
-                            <div id="callees" class="flex flex-wrap gap-1.5 text-sm"></div>
-                        </div>
+                    <summary><span>Connections <span id="connCount" class="connection-count"></span></span></summary>
+                    <div class="sect-body connection-grid">
+                        <div><h4>Called by</h4><div id="callers" class="connection-chips"></div></div>
+                        <div><h4>Calls</h4><div id="callees" class="connection-chips"></div></div>
                     </div>
                 </details>
 
-                <details class="sect">
-                    <summary class="text-sm font-semibold">Decompiled output (Ghidra)</summary>
-                    <div class="sect-body">
-                    <pre class="rounded-xl !bg-slate-950 border !border-slate-800 !p-3.5 text-sm overflow-x-auto"><code
-                            id="codeBlock" class="language-c"></code></pre>
-                    </div>
+                <details class="sect code-section">
+                    <summary>Decompiled output <span class="code-source">Ghidra</span></summary>
+                    <div class="sect-body"><pre><code id="codeBlock" class="language-c"></code></pre></div>
                 </details>
             </div>
 
-            <!-- Footer Cheat Sheet -->
-            <details class="border-t border-slate-800 bg-slate-950/60 shrink-0">
-                <summary
-                        class="px-4 py-3 text-sm font-semibold text-slate-300 flex justify-between hover:text-white cursor-pointer">
-                    <span>📖 Decompiler cheat sheet</span><span class="text-slate-500">toggle</span>
-                </summary>
-                <ul class="px-4 pb-4 pt-1 space-y-2 text-sm text-slate-300 leading-relaxed max-h-56 overflow-y-auto">
-                    <li><span class="font-mono text-slate-200">param_1, param_2…</span> the arguments the function received,
-                        in order.
-                    </li>
-                    <li><span class="font-mono text-slate-200">local_XX, iVar1, pcVar2…</span> local variables. The prefix
-                        hints at the type (i = int, u = unsigned, pc = char pointer, s = size_t).
-                    </li>
-                    <li><span class="font-mono text-slate-200">undefined8</span> 8 bytes Ghidra couldn't type. Often a
-                        pointer or a long.
-                    </li>
-                    <li><span class="font-mono text-slate-200">FUN_00101234</span> a function with no name. Rename it once
-                        you understand it.
-                    </li>
-                    <li><span class="font-mono text-slate-200">in_FS_OFFSET + 0x28</span> the stack canary, a compiler
-                        safety check ending in <span class="font-mono">__stack_chk_fail</span>. Usually ignore it.
-                    </li>
-                    <li><span class="font-mono text-slate-200">0x21, 0x1505…</span> hex constants. Convert to decimal and
-                        look them up, since some are famous.
-                    </li>
-                    <li><span class="font-mono text-slate-200">"quoted strings"</span> the best clues. Start there.</li>
-                    <li>Decompiled code is a guess. Names and types are reconstructed, so the original source looked
-                        different.
-                    </li>
+            <details class="cheat-sheet">
+                <summary><span><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3.75 4.5A2.25 2.25 0 0 1 6 2.25h10v14H6a2.25 2.25 0 0 0-2.25 2.25v-14Zm0 0H14M6.5 7h6m-6 3h6" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/></svg>Decompiler cheat sheet</span><span class="cheat-toggle">Open</span></summary>
+                <ul>
+                    <li><code>param_1, param_2…</code> function arguments, in order.</li>
+                    <li><code>local_XX, iVar1, pcVar2…</code> local variables. Prefixes hint at types.</li>
+                    <li><code>undefined8</code> an 8-byte value Ghidra could not identify.</li>
+                    <li><code>FUN_00101234</code> an unnamed function. Rename it after you understand it.</li>
+                    <li><code>in_FS_OFFSET + 0x28</code> a stack canary check, often safe to ignore.</li>
+                    <li><code>0x21, 0x1505…</code> hexadecimal constants. Convert them or look them up.</li>
+                    <li>Quoted strings often reveal useful clues.</li>
+                    <li>Decompiler output is a reconstruction. The original source looked different.</li>
                 </ul>
             </details>
         </aside>
-    </div>
-    <script src="app.js"></script>
+    </main>
+
+    <footer class="status-footer">
+        <div class="status-left"><span class="status-pip" aria-hidden="true"></span><span id="statusText">Ready to explore</span></div>
+        <div class="status-middle"><span>Ghidra</span><span class="status-plus">+</span><span>gdb</span></div>
+        <div class="status-hints"><span><kbd>Enter</kbd> inspect</span><span><kbd>Esc</kbd> clear search</span></div>
+    </footer>
+</div>
+<script src="app.js"></script>
 </body>
 </html>
