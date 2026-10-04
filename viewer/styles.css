@@ -78,18 +78,13 @@ input::placeholder { color: var(--text-muted); opacity: 1; }
     display: flex;
     flex: 0 0 48px;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 16px;
     min-width: 0;
     padding: 0 24px;
     border-bottom: 1px solid var(--color-border-soft);
     background: var(--surface-1);
 }
-.dataset-file { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.dataset-file > svg { width: 18px; height: 18px; flex: 0 0 18px; color: var(--text-muted); }
-.dataset-name-wrap { display: flex; min-width: 0; align-items: baseline; gap: 11px; }
-.dataset-caption { color: var(--text-muted); font-size: 12px; font-weight: 600; letter-spacing: .055em; text-transform: uppercase; white-space: nowrap; }
-.dataset-name-wrap strong { display: block; overflow: hidden; max-width: min(43vw, 470px); color: var(--color-text); font-family: var(--font-mono); font-size: 13px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
 .dataset-stats { display: flex; align-items: center; gap: 25px; margin: 0; padding: 0; }
 .dataset-stats > div { display: flex; align-items: baseline; gap: 8px; }
 .dataset-stats dt { color: var(--text-muted); font-size: 12px; }
@@ -346,11 +341,6 @@ kbd { padding: 1px 4px; border: 1px solid var(--color-border); border-radius: 3p
     .brand-copy h1 { font-size: 16px; }
     .brand-copy p { max-width: 145px; margin-top: 4px; font-size: 11px; }
     .dataset-strip { flex-basis: 46px; gap: 8px; padding: 0 12px; }
-    .dataset-file { gap: 6px; }
-    .dataset-file > svg { width: 16px; height: 16px; flex-basis: 16px; }
-    .dataset-name-wrap { display: block; }
-    .dataset-caption { display: none; }
-    .dataset-name-wrap strong { max-width: 37vw; font-size: 11px; }
     .dataset-stats { gap: 11px; }
     .dataset-stats > div { display: flex; flex-direction: column; gap: 0; align-items: flex-end; }
     .dataset-stats dt { font-size: 11px; line-height: 1.2; }
@@ -400,7 +390,6 @@ kbd { padding: 1px 4px; border: 1px solid var(--color-border); border-radius: 3p
     .brand-copy p { max-width: 128px; }
     .masthead { padding-right: 10px; padding-left: 10px; }
     .dataset-strip { padding-right: 9px; padding-left: 9px; }
-    .dataset-name-wrap strong { max-width: 31vw; }
     .dataset-stats { gap: 8px; }
     .dataset-stats dt, .dataset-stats dd { font-size: 11px; }
     .canvas-toolbar { padding-right: 10px; padding-left: 10px; }
