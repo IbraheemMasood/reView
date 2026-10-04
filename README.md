@@ -138,13 +138,13 @@ A Docker image is included for a ready-made environment with Ghidra, gdb, and Py
 Build:
 
 ```bash
-docker build -t reView .
+docker build -t review .
 ```
 
 Run against a binary:
 
 ```bash
-docker run --rm -p 8000:8000 -v /path/to/binary:/tmp/binary reView /tmp/binary
+docker run --rm -p 8000:8000 -v /path/to/binary:/tmp/binary review /tmp/binary
 ```
 
 The container sets the default host to `0.0.0.0` and exposes port `8000`.
