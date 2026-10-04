@@ -9,12 +9,12 @@ This ledger tracks the Vercel static viewer preview created by `scripts/deploy-s
   "vercelScope": "nathanpannells-projects",
   "projectName": "review-redesign-demo",
   "projectId": "prj_hkh6ygxPryXl7YH5OlUqT7d74z0q",
-  "deploymentId": "dpl_C83D7WsN2ETgbSpsKQkAnRf8GWDK",
-  "deploymentUrl": "https://review-redesign-demo-isawwjz0t-nathanpannells-projects.vercel.app",
+  "deploymentId": "dpl_GQ8vUv2ZnqEQWxd4YG11UcgiNqRi",
+  "deploymentUrl": "https://review-redesign-demo-r9zzz7jyh-nathanpannells-projects.vercel.app",
   "demoUrl": "https://review-redesign-demo.vercel.app/keychecker/",
   "deploymentTarget": "production",
-  "previewDeploymentId": "dpl_BMNgiJ7uegAGSadyS7eB2AckgVim",
-  "previewDeploymentUrl": "https://review-redesign-demo-avucm22o8-nathanpannells-projects.vercel.app",
+  "previewDeploymentId": "dpl_CXMvstTah5T8LYhQ2s6s5Nv3FVcs",
+  "previewDeploymentUrl": "https://review-redesign-demo-4g3bxgrb6-nathanpannells-projects.vercel.app",
   "previousDeployments": [
     {
       "deploymentId": "dpl_8zh3HLdwSdUAoPSPMXvs1CEE1nBe",
@@ -55,6 +55,16 @@ This ledger tracks the Vercel static viewer preview created by `scripts/deploy-s
       "deploymentId": "dpl_BMNgiJ7uegAGSadyS7eB2AckgVim",
       "deploymentUrl": "https://review-redesign-demo-avucm22o8-nathanpannells-projects.vercel.app",
       "target": "preview"
+    },
+    {
+      "deploymentId": "dpl_C83D7WsN2ETgbSpsKQkAnRf8GWDK",
+      "deploymentUrl": "https://review-redesign-demo-isawwjz0t-nathanpannells-projects.vercel.app",
+      "target": "production"
+    },
+    {
+      "deploymentId": "dpl_CXMvstTah5T8LYhQ2s6s5Nv3FVcs",
+      "deploymentUrl": "https://review-redesign-demo-4g3bxgrb6-nathanpannells-projects.vercel.app",
+      "target": "preview"
     }
   ],
   "payloadFiles": [
@@ -65,16 +75,16 @@ This ledger tracks the Vercel static viewer preview created by `scripts/deploy-s
     "keychecker/styles.css"
   ],
   "payloadHashes": {
-    "keychecker/index.html": "9da81c176ffdb6fd7f768e4e15b9178b842e676ac9abd44d3475d6432d64c9d6",
-    "keychecker/app.js": "2c688230edfbefe562695c1977aa56035a825a9f918b7d06f6c89778e9e02259",
-    "keychecker/styles.css": "61ccd7551bbb46391886b89836139053f0c4f69518a5ae02fd4b2f458967d6d3",
+    "keychecker/index.html": "adcbe7b1ea5df8f3f4ab997be918f63901695c2b5a07e453332c3ed1254fa210",
+    "keychecker/app.js": "acb969a380571b200303c935dca30ad8deb5ddf41732404a3c3adcd52ed30956",
+    "keychecker/styles.css": "439acedac2a64a621a44bdd5604f79ed29b8db69194395727e137c8b0fa4d76b",
     "keychecker/graph.json": "4b79caed8503bbaf3e2b6e87a4edfd764159d18caaf05f50dea1275fd6b13a29"
   },
-  "gitBranch": "codex/ui-control-refinement",
-  "gitCommit": "92b2dad289e3486ab08a10fec8ff0d1f2d05bf22",
+  "gitBranch": "codex/remove-inferred-binary-name",
+  "gitCommit": "9d698ababc5e5f8097e2be98bdc5d638da0b5d0f",
   "workingTreeDirty": true,
   "createdAtUtc": "2026-10-04T11:02:33.7299478Z",
-  "deployedAtUtc": "2026-10-04T12:03:06.7165916Z",
+  "deployedAtUtc": "2026-10-04T12:22:33.1655117Z",
   "lastPublicCheckUtc": "2026-10-04T11:18:35Z",
   "teardownStartedAtUtc": null,
   "teardownCompletedAtUtc": null,
@@ -88,4 +98,4 @@ After review, remove the preview with `pwsh -File scripts/teardown-static-demo.p
 
 ## Follow-up refinement
 
-The `codex/ui-control-refinement` follow-up is in progress as of 2026-10-04 11:49 UTC. At the read-only pre-push audit, the checkout was at `c466f1467a068f8a119751f51f19352c576e911e` and tracked `origin/master`; the feature branch has not been pushed by this preview owner. The live upstream GitHub Actions inventory was empty, the local checkout had no `.github/workflows`, and the existing Vercel project still had no Git integration. GitHub CLI and Vercel CLI were available and authenticated as `NathanPannell` and `nathanpannell`, respectively. The existing public demo alias remains assigned to this owned Vercel project for follow-up PR review. Deploy the updated allowlisted viewer files only after the parent confirms source freeze, then update this lifecycle record with the follow-up branch, exact source revision, deployment ID, and verified asset hashes.
+The `codex/remove-inferred-binary-name` refinement was committed as `9d698ababc5e5f8097e2be98bdc5d638da0b5d0f` and deployed to the existing project as `dpl_GQ8vUv2ZnqEQWxd4YG11UcgiNqRi` at `https://review-redesign-demo-r9zzz7jyh-nathanpannells-projects.vercel.app`. The public review alias is `https://review-redesign-demo.vercel.app/keychecker/`. Cache-busted checks confirmed the hosted viewer HTML, JavaScript, stylesheet, and unchanged graph JSON match the source and hashes recorded above; the root redirect returns HTTP 200. The deployment used only the three `viewer/` files and unchanged graph JSON. Keep this preview active through the follow-up PR review. Remove it only after review is complete using the teardown command above.

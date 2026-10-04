@@ -30,8 +30,6 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const motionDuration = ms => reducedMotion.matches ? 0 : ms;
 const themeColor = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 let functionFilter = 'all';
-const graphPath = location.pathname.split('/').filter(Boolean);
-let graphLabel = decodeURIComponent(graphPath.at(-1)?.endsWith('.html') ? (graphPath.at(-2) || 'Binary graph') : (graphPath.at(-1) || 'Binary graph'));
 
 /* ---------- user renames (display only; node.label stays the original so traces still match) ---------- */
 let renames = new Map(), inspectedId = null;
@@ -121,7 +119,7 @@ const fileInput = $('fileInput');
 fileInput?.addEventListener('change', e => {
     const f = e.target.files[0];
     if (!f) return;
-    f.text().then(t => { loadGraph(JSON.parse(t)); graphLabel = f.name.replace(/\.json$/i, ''); updateWorkspace(); }).catch(showLoadError);
+    f.text().then(t => { loadGraph(JSON.parse(t)); }).catch(showLoadError);
     e.target.value = '';
 });
 
@@ -1210,7 +1208,6 @@ fetch('/api/config')
 function updateWorkspace(data) {
     document.body.classList.toggle('has-graph', nodes.size > 0);
     const fields = {
-        binaryName: graphLabel,
         nodeCount: nodes.size,
         edgeCount: [...out.values()].reduce((sum, ids) => sum + ids.length, 0),
         traceCount: graphTraces.length,
