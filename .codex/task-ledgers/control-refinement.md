@@ -23,4 +23,4 @@ Added focused repository AGENTS.md checks for stable graph transitions and obser
 - Browser errors were Chrome-extension message-channel errors already present in baseline; the optional live-config endpoint returns the expected 404 on the static demo. No backend service was deployed or modified.
 - Browser test tab closed and viewport/media/cache overrides reset. Before/after captures are in docs/screenshots/refinement.
 - Final independent visual verdict: SHIP across six final desktop/mobile captures. Thirteen review images are retained, including cropped before/after details.
-- Remaining delivery: follow-up PR publication.
+- Delivered: https://github.com/IbraheemMasood/reView/pull/4 with thirteen screenshots and verified deployed preview. Test tab closed; preview retained for review.
