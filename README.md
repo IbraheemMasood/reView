@@ -190,6 +190,20 @@ Then:
 - replay the trace and inspect inputs/returns
 - identify important decision points like validation, hashing, branching, and access checks
 
+## Viewer controls
+
+| Key | Action |
+| --- | --- |
+| `Ctrl+K` or `/` | Search functions by name or address (`Shift+Enter` highlights every match) |
+| `T` | Run the selected trace (or the live input) |
+| `Space` / `Right arrow` | Play or pause / step the trace |
+| `F` | Fit the graph to the screen |
+| `I` | Toggle interest highlighting |
+| `E` | Toggle the inspector |
+| `?` | Show all shortcuts |
+
+The viewer is still three static files (`viewer/index.html`, `app.js`, `styles.css`) loading libraries from public CDNs. Animations respect the operating system's reduced-motion setting.
+
 ## Acknowledgements
 
 This project depends on:
@@ -197,6 +211,7 @@ This project depends on:
 - Ghidra for program analysis and decompilation
 - gdb for runtime tracing
 - Cytoscape and Dagre for the interactive graph UI
+- Prism for decompiled code highlighting, Tailwind for styling, and Lucide icons (ISC license) inlined in the viewer
 - Gemini AI via `google-genai` for optional summary generation
 
 
