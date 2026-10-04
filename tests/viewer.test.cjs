@@ -74,7 +74,7 @@ class Element {
     click() { this.dispatch('click'); }
 }
 
-function harness(reduceMotion = false, width = 1400, absentIds = []) {
+function harness(reduceMotion = false, width = 1400, absentIds = [], graphInstance = null) {
     const elements = new Map();
     const filters = ['all', 'custom', 'import', 'interest'].map(filter => {
         const button = new Element('button');
@@ -108,7 +108,7 @@ function harness(reduceMotion = false, width = 1400, absentIds = []) {
     const context = vm.createContext({
         document, window, location: { pathname: '/demo.html' },
         fetch: () => new Promise(() => {}),
-        cytoscape: { use() {} },
+        cytoscape: graphInstance ? Object.assign(() => graphInstance, { use() {} }) : { use() {} },
         TextEncoder, Map, Set, Promise, console,
         localStorage: { getItem: () => null, setItem() {} },
         ResizeObserver: class { observe() {} },
@@ -141,6 +141,7 @@ class GraphDouble {
     constructor(initial = []) {
         this.items = new Map();
         this.layoutCalls = 0;
+        this.handlers = new Map();
         this.add(initial.map(({ id, position }) => ({ data: { id }, position })));
     }
     add(entries) {
@@ -178,12 +179,19 @@ class GraphDouble {
     stop() {}
     resize() {}
     animate() {}
+    destroy() {}
+    on(events, selector, handler) {
+        const callback = typeof selector === 'function' ? selector : handler;
+        if (!this.handlers.has(events)) this.handlers.set(events, []);
+        this.handlers.get(events).push(callback);
+    }
+    tapNode(id) { for (const callback of this.handlers.get('tap') || []) callback({ target: this.getElementById(id) }); }
     layout() { this.layoutCalls++; return { run() {} }; }
 }
 
-function graphHarness(width, initial, connections) {
-    const h = harness(false, width);
+function graphHarness(width, initial, connections, withEvents = false) {
     const graph = new GraphDouble(initial);
+    const h = harness(false, width, [], withEvents ? graph : null);
     h.context.graph = graph;
     h.context.graphNodes = [...new Set([...initial.map(({ id }) => id), ...connections.flat()])]
         .map(id => ({ id, label: id }));
@@ -282,6 +290,24 @@ test('collapsing and reopening a branch restores its nodes to their exact positi
     assert.deepEqual(h.graph.getElementById('leaf').position(), original);
     assert.deepEqual(h.graph.getElementById('main').position(), { x: 0, y: 0 });
     assert.deepEqual(h.graph.getElementById('branch').position(), { x: 230, y: 0 });
+});
+
+test('node taps inspect without changing graph visibility during an active trace', () => {
+    const original = { x: 460, y: 0 };
+    const h = graphHarness(1400, [
+        { id: 'main', position: { x: 0, y: 0 } },
+        { id: 'branch', position: { x: 230, y: 0 } },
+        { id: 'leaf', position: original }
+    ], [['main', 'branch'], ['branch', 'leaf']], true);
+    h.run('createCy(); inspect = id => { globalThis.inspected = id; }; trace.active = true; trace.busy = false;');
+    h.graph.tapNode('branch');
+    assert.equal(h.context.inspected, 'branch');
+    assert.equal(h.graph.getElementById('leaf').length, 1);
+    assert.deepEqual(h.graph.getElementById('leaf').position(), original);
+    assert.equal(h.run('visible.has("leaf")'), true);
+    h.run('trace.active = false;');
+    h.graph.tapNode('branch');
+    assert.equal(h.graph.getElementById('leaf').length, 0);
 });
 
 test('search, show all, and navigator selection reveal nodes without re-layout', () => {
@@ -463,6 +489,47 @@ test('a running trace can be paused while a step is busy, but cannot start anoth
     h.run('trace.busy = false; updateTraceBtns();');
     assert.equal(h.elements.get('tracePlay').disabled, false);
     assert.equal(h.elements.get('traceStep').disabled, false);
+});
+
+test('Show all is unavailable through an active trace and recovers after reset', () => {
+    const h = graphHarness(1400, [{ id: 'main', position: { x: 0, y: 0 } }], [['main', 'helper']]);
+    const button = h.context.document.getElementById('expandAllBtn');
+    h.run('trace.active = true; trace.playing = false; trace.busy = false; updateTraceBtns();');
+    assert.equal(button.disabled, true);
+    assert.equal(button.title, 'Close or reset the trace to change graph visibility');
+    button.click();
+    assert.equal(h.graph.getElementById('helper').length, 0);
+    h.run('traceClear()');
+    assert.equal(button.disabled, false);
+    assert.equal(button.title, 'Show all functions');
+    button.click();
+    assert.equal(h.graph.getElementById('helper').length, 1);
+});
+
+test('Step starts the selected trace and applies its first event after Reset', async () => {
+    const h = graphHarness(1400, [{ id: 'main', position: { x: 0, y: 0 } }], []);
+    const select = h.context.document.getElementById('traceSelect');
+    select.disabled = false;
+    select.value = 't:0';
+    h.run(`
+        graphTraces = [{events:[{t:'enter',a:'main'}]}];
+        prepareTrace = () => ({ list:[{t:'enter',a:'main'}], ids:new Set(['main']), edges:new Set() });
+        applyEvent = async () => { globalThis.applied = (globalThis.applied || 0) + 1; };
+        traceClear();
+    `);
+    const step = h.context.document.getElementById('traceStep');
+    assert.equal(step.disabled, false);
+    step.click();
+    await Promise.resolve();
+    assert.equal(h.run('trace.i'), 1);
+    assert.equal(h.context.applied, 1);
+    h.context.document.getElementById('traceReset').click();
+    assert.equal(h.run('trace.active'), false);
+    assert.equal(step.disabled, false);
+    step.click();
+    await Promise.resolve();
+    assert.equal(h.run('trace.i'), 1);
+    assert.equal(h.context.applied, 2);
 });
 
 test('removing the import control does not prevent the other controls from initializing', () => {

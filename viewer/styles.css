@@ -129,7 +129,7 @@ input::placeholder { color: var(--text-muted); opacity: 1; }
 
 .canvas-column { position: relative; z-index: 1; display: flex; min-width: 0; min-height: 0; flex-direction: column; overflow: hidden; background: var(--color-background); }
 .canvas-toolbar { display: flex; flex: 0 0 auto; align-items: center; gap: 14px; min-height: 68px; padding: 11px 20px; border-bottom: 1px solid var(--color-border-soft); background: var(--surface-1); }
-.canvas-title-group { display: flex; min-width: 0; align-items: center; gap: 12px; }
+.canvas-title-group { display: flex; min-width: 0; flex: 1 1 100%; align-items: center; gap: 12px; }
 .canvas-title-group h2 { margin: 0; }
 .mobile-nav-toggle { display: none; width: 44px; height: 44px; flex: 0 0 44px; align-items: center; justify-content: center; border: 1px solid var(--color-border); border-radius: 6px; background: var(--surface-2); color: var(--text-soft); cursor: pointer; }
 .mobile-nav-toggle svg { width: 17px; height: 17px; }
@@ -194,15 +194,15 @@ body.has-graph .canvas-empty { display: none; }
 .load-message .load-error { color: var(--color-risk); font-family: var(--font-mono); font-size: 12px; overflow-wrap: anywhere; }
 
 .trace-panel { display: flex; height: min(300px, 40vh); min-height: 176px; flex: 0 0 auto; flex-direction: column; border-top: 1px solid var(--color-border); background: var(--surface-1); }
-.trace-panel-head { position: relative; display: flex; min-height: 54px; flex: 0 0 auto; align-items: center; gap: 14px; padding: 5px 14px; border-bottom: 1px solid var(--color-border); background: var(--surface-1); }
-.trace-panel-title { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; }
+.trace-panel-head { position: relative; display: flex; min-height: 54px; flex: 0 0 auto; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 58px 10px 14px; border-bottom: 1px solid var(--color-border); background: var(--surface-1); }
+.trace-panel-title { display: flex; flex: 1 1 100%; align-items: center; gap: 8px; }
 .trace-panel-title h3 { margin: 0; color: var(--color-text); font-size: 15px; font-weight: 680; }
 .trace-progress { color: var(--text-soft); font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
 .trace-live-indicator { position: relative; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); }
 .trace-live-indicator::after { position: absolute; inset: -4px; border: 1px solid transparent; border-radius: 50%; content: ""; }
 .trace-panel.is-playing .trace-live-indicator { background: var(--color-accent); }
 .trace-panel.is-playing .trace-live-indicator::after { border-color: rgb(189 235 216 / 70%); animation: trace-signal 1.2s ease-out infinite; }
-.trace-playback { display: flex; min-width: 0; align-items: center; gap: 6px; }
+.trace-playback { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 6px; }
 .trace-control { display: inline-flex; min-width: 44px; min-height: 40px; align-items: center; justify-content: center; gap: 5px; padding: 0 11px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--surface-2); color: var(--text-soft); font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; }
 .trace-control:hover { border-color: var(--color-edge); background: var(--color-border-soft); color: var(--color-text); }
 .trace-control svg { width: 15px; height: 15px; }
@@ -211,7 +211,7 @@ body.has-graph .canvas-empty { display: none; }
 .trace-playback select { min-width: 88px; min-height: 40px; padding: 0 8px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--surface-0); color: var(--color-accent); font-size: 12px; }
 .trace-follow { display: inline-flex; min-height: 40px; align-items: center; gap: 7px; margin-left: 2px; color: var(--text-muted); font-size: 12px; white-space: nowrap; }
 .trace-follow input { accent-color: var(--text-muted); }
-.trace-close { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; margin-left: auto; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--text-muted); cursor: pointer; }
+.trace-close { position: absolute; top: 7px; right: 10px; display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; margin-left: auto; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--text-muted); cursor: pointer; }
 .trace-close:hover { border-color: var(--color-edge); background: var(--color-border-soft); color: var(--color-text); }
 .trace-close svg { width: 16px; height: 16px; }
 .trace-panel-body { display: grid; min-width: 0; min-height: 0; flex: 1 1 auto; grid-template-columns: minmax(0, 1fr) 220px; }
@@ -356,12 +356,13 @@ kbd { padding: 1px 4px; border: 1px solid var(--color-border); border-radius: 3p
     .dataset-stats dt { font-size: 11px; line-height: 1.2; }
     .dataset-stats dd { font-size: 12px; }
     .canvas-toolbar { min-height: 0; flex-wrap: wrap; align-items: flex-start; gap: 9px; padding: 12px; }
-    .canvas-title-group { flex: 1 1 100%; gap: 8px; }
-    .canvas-toolbar-controls { width: 100%; flex: 1 1 100%; flex-wrap: wrap; align-items: flex-start; gap: 8px; }
-    .canvas-actions { flex: 1 1 250px; flex-wrap: wrap; gap: 6px; }
+    .canvas-title-group { flex: 1 1 100%; align-items: flex-start; gap: 8px; }
+    .canvas-toolbar-controls { display: grid; grid-template-columns: minmax(0, 1fr) 44px; flex: 1 1 0; align-items: start; gap: 8px; }
+    .canvas-actions { flex-wrap: wrap; gap: 6px; }
     .tool-chip, .tool-button, .inspector-toggle { min-height: 44px; gap: 6px; padding: 0 10px; font-size: 12px; }
     .tool-button svg { width: 16px; height: 16px; }
-    .inspector-toggle { margin-left: auto; }
+    .inspector-toggle { width: 44px; padding: 0; margin-left: auto; }
+    .inspector-toggle-label { display: none; }
     .trace-launch { min-height: 0; flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
     .trace-launch-icon { width: 28px; height: 28px; flex-basis: 28px; }
     .trace-select-wrap { flex: 1 1 210px; gap: 8px; font-size: 12px; }

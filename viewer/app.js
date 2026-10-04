@@ -171,7 +171,7 @@ function createCy() {
     });
     cy.on('tap', 'node', evt => {
         const id = evt.target.id();
-        if (trace.busy) { inspect(id, true); return; }   // don't move nodes under the token
+        if (trace.active || trace.busy) { inspect(id, true); return; }   // keep the trace graph fixed while it is active
         const needOpen = sidebarClosed();
         const expanded = shouldCollapse(id);
         const before = new Set(visible);
@@ -939,7 +939,7 @@ function updateTraceBtns() {
     $('traceStep').disabled = trace.busy || trace.playing || finished || (!trace.active && !hasSelection);
     $('tracePlay').disabled = (!trace.active && !hasSelection) || (trace.busy && !trace.playing);
     $('traceReset').disabled = !trace.active && !trace.busy;
-    $('expandAllBtn').disabled = !nodes.size || trace.busy;
+    updateExpandBtn();
     $('traceBtn').disabled = liveCfg ? liveBusy : $('traceSelect').disabled || trace.busy;
     if ($('traceProgress')) $('traceProgress').textContent = trace.active ? `${trace.i} / ${trace.events.length} events` : 'Ready';
     if ($('statusText')) $('statusText').textContent = liveBusy ? 'Running under gdb' : trace.playing ? 'Following execution' : finished ? 'Trace complete' : 'Ready to explore';
@@ -967,8 +967,8 @@ $('tracePlay').addEventListener('click', () => {
 $('traceStep').addEventListener('click', async () => {
     if ($('traceStep').disabled) return;
     trace.playing = false;
-    if (!trace.active) { startDefault(false); return; }
-    await traceStep();
+    if (!trace.active) startDefault(false);
+    if (trace.active) await traceStep();
     updateTraceBtns();
 });
 $('traceReset').addEventListener('click', traceClear);
@@ -1063,9 +1063,11 @@ function updateInterestBtn() {
 // "Show all" becomes "Hide all" once every node is on screen
 function updateExpandBtn() {
     const all = nodes.size > 0 && visible.size >= nodes.size;
+    const traceLocked = trace.active || trace.busy;
     setButtonLabel($('expandAllBtn'), '.action-label', all ? 'Hide all' : 'Show all');
-    $('expandAllBtn').setAttribute('aria-label', all ? 'Hide all functions except entry' : 'Show all functions');
-    $('expandAllBtn').title = all ? 'Hide all functions except entry' : 'Show all functions';
+    $('expandAllBtn').disabled = !nodes.size || traceLocked;
+    $('expandAllBtn').setAttribute('aria-label', traceLocked ? 'Close or reset the trace to change graph visibility' : all ? 'Hide all functions except entry' : 'Show all functions');
+    $('expandAllBtn').title = traceLocked ? 'Close or reset the trace to change graph visibility' : all ? 'Hide all functions except entry' : 'Show all functions';
 }
 
 // everything except main goes away
@@ -1361,7 +1363,14 @@ if (window.innerWidth < 1100) {
     $('sidebarBtn').setAttribute('aria-expanded', 'false');
     $('sidebarBtn').setAttribute('aria-label', 'Show function inspector');
 }
-new ResizeObserver(() => { if (cy) cy.resize(); }).observe($('cy'));
+new ResizeObserver(() => {
+    if (!cy) return;
+    cy.resize();
+    if (trace.active && $('traceFollow').checked) {
+        const id = trace.stack.at(-1) || trace.events[trace.i]?.a || (trace.i === 0 ? trace.events[0]?.a : null);
+        if (id) followTraceNode(id);
+    }
+}).observe($('cy'));
 window.matchMedia('(min-width: 1100px)').addEventListener('change', event => {
     if (event.matches) {
         $('sidebar').removeAttribute('role');
