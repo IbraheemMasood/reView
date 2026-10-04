@@ -198,19 +198,7 @@ This project depends on:
 - Cytoscape and Dagre for the interactive graph UI
 - Gemini AI via `google-genai` for optional summary generation
 
-## License
 
-This repository does not currently declare a license in the project files inspected here. If you plan to distribute or reuse it publicly, confirm whether a license is required and add the appropriate one before publication.
 
-## Contributing
 
-Contributions are welcome, especially around:
 
-- better heuristics for identifying interesting functions
-- additional trace robustness across architectures
-- improved AI summaries and explanation quality
-- UI improvements for reverse-engineering analysis
-
----
-
-If you want, I can also turn this into a more polished GitHub-style README with badges, screenshots placeholders, and a shorter “TL;DR” section for the project landing page.
