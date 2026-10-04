@@ -1,0 +1,848 @@
+{
+  "nodes": [
+    {
+      "id": "0x00102150",
+      "label": "_start",
+      "type": "entry",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "void processEntry _start(undefined8 param_1,undefined8 param_2)\n\n{\n  undefined1 auStack_8 [8];\n  \n  (*(code *)PTR___libc_start_main_00104fc0)(main,param_2,&stack0x00000008,0,0,param_1,auStack_8);\n  do {\n                    /* WARNING: Do nothing block with infinite loop */\n  } while( true );\n}"
+    },
+    {
+      "id": "0x00102249",
+      "label": "compute",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* compute(int) */\n\nint compute(int param_1)\n\n{\n  runtime_error *this;\n  \n  if (2 < param_1) {\n    this = (runtime_error *)__cxa_allocate_exception(0x10);\n    std::runtime_error::runtime_error(this,\"too big\");\n                    /* WARNING: Subroutine does not return */\n    __cxa_throw(this,std::runtime_error::typeinfo,PTR__runtime_error_00104fc8);\n  }\n  return param_1 * 2;\n}"
+    },
+    {
+      "id": "0x001022be",
+      "label": "main",
+      "type": "entry",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "undefined8 main(void)\n\n{\n  int iVar1;\n  ostream *poVar2;\n  long in_FS_OFFSET;\n  allocator local_59 [9];\n  allocator *local_50;\n  string local_48 [40];\n  long local_20;\n  \n  local_20 = *(long *)(in_FS_OFFSET + 0x28);\n  local_50 = local_59;\n  std::__cxx11::string::string<std::allocator<char>>(local_48,\"hi \",local_59);\n  poVar2 = std::operator<<((ostream *)std::cout,local_48);\n  iVar1 = compute(1);\n  poVar2 = (ostream *)std::ostream::operator<<(poVar2,iVar1);\n  std::operator<<(poVar2,\"\\n\");\n  compute(5);\n  std::__cxx11::string::~string(local_48);\n  if (local_20 != *(long *)(in_FS_OFFSET + 0x28)) {\n                    /* WARNING: Subroutine does not return */\n    __stack_chk_fail();\n  }\n  return 0;\n}"
+    },
+    {
+      "id": "0x00102424",
+      "label": "assign",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::char_traits<char>::assign(char&, char const&) */\n\nvoid std::char_traits<char>::assign(char *param_1,char *param_2)\n\n{\n  *param_1 = *param_2;\n  return;\n}"
+    },
+    {
+      "id": "0x00102440",
+      "label": "length",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::char_traits<char>::length(char const*) */\n\nvoid std::char_traits<char>::length(char *param_1)\n\n{\n  strlen(param_1);\n  return;\n}"
+    },
+    {
+      "id": "0x0010245b",
+      "label": "copy",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::char_traits<char>::copy(char*, char const*, unsigned long) */\n\nchar * std::char_traits<char>::copy(char *param_1,char *param_2,ulong param_3)\n\n{\n  if (param_3 != 0) {\n    param_1 = memcpy(param_1,param_2,param_3);\n  }\n  return param_1;\n}"
+    },
+    {
+      "id": "0x0010249c",
+      "label": "~_Alloc_hider",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_Alloc_hider::~_Alloc_hider() */\n\nvoid __thiscall std::__cxx11::string::_Alloc_hider::~_Alloc_hider(_Alloc_hider *this)\n\n{\n  return;\n}"
+    },
+    {
+      "id": "0x001024b0",
+      "label": "_M_local_data",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_local_data() */\n\nvoid __thiscall std::__cxx11::string::_M_local_data(string *this)\n\n{\n  __ptr_traits_ptr_to<char*,char,false>::pointer_to((char *)(this + 0x10));\n  return;\n}"
+    },
+    {
+      "id": "0x001024ce",
+      "label": "pointer_to",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__ptr_traits_ptr_to<char*, char, false>::pointer_to(char&) */\n\nchar * std::__ptr_traits_ptr_to<char*,char,false>::pointer_to(char *param_1)\n\n{\n  return param_1;\n}"
+    },
+    {
+      "id": "0x001024e4",
+      "label": "string<std::allocator<char>>",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::string<std::allocator<char> >(char const*, std::allocator<char> const&) */\n\nvoid __thiscall\nstd::__cxx11::string::string<std::allocator<char>>(string *this,char *param_1,allocator *param_2)\n\n{\n  char *pcVar1;\n  long lVar2;\n  \n  pcVar1 = (char *)_M_local_data(this);\n  _Alloc_hider::_Alloc_hider((_Alloc_hider *)this,pcVar1,param_2);\n  if (param_1 == (char *)0x0) {\n    std::__throw_logic_error(\"basic_string: construction from null is not valid\");\n  }\n  lVar2 = char_traits<char>::length(param_1);\n  _M_construct<char_const*>(this,param_1,param_1 + lVar2);\n  return;\n}"
+    },
+    {
+      "id": "0x00102584",
+      "label": "_Alloc_hider",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_Alloc_hider::_Alloc_hider(char*, std::allocator<char> const&) */\n\nvoid __thiscall\nstd::__cxx11::string::_Alloc_hider::_Alloc_hider\n          (_Alloc_hider *this,char *param_1,allocator *param_2)\n\n{\n  *(char **)this = param_1;\n  return;\n}"
+    },
+    {
+      "id": "0x001025c4",
+      "label": "string*)",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_construct<char const*>(char const*, char const*,\n   std::forward_iterator_tag)::_Guard::_Guard(std::__cxx11::string*) */\n\nvoid std::__cxx11::string::_M_construct<char_const*>(char_const*,char_const*,std::\n     forward_iterator_tag)::_Guard::_Guard(std::__cxx11::string__\n               (undefined8 *param_1,undefined8 param_2)\n\n{\n  *param_1 = param_2;\n  return;\n}"
+    },
+    {
+      "id": "0x001025de",
+      "label": "~_Guard",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* ~_Guard() */\n\nvoid __thiscall\nstd::__cxx11::string::_M_construct<char_const*>(char_const*,char_const*,std::forward_iterator_tag)::\n_Guard::~_Guard(_Guard *this)\n\n{\n  if (*(long *)this != 0) {\n    _M_dispose(*(string **)this);\n  }\n  return;\n}"
+    },
+    {
+      "id": "0x00102608",
+      "label": "_M_construct<char_const*>",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* void std::__cxx11::string::_M_construct<char const*>(char const*, char const*,\n   std::forward_iterator_tag) */\n\nvoid std::__cxx11::string::_M_construct<char_const*>(string *param_1,char *param_2,char *param_3)\n\n{\n  string *psVar1;\n  char *pcVar2;\n  long in_FS_OFFSET;\n  ulong local_48;\n  undefined8 local_40;\n  char *local_38;\n  char *local_30;\n  string *local_28;\n  long local_20;\n  \n  local_20 = *(long *)(in_FS_OFFSET + 0x28);\n  local_48 = (long)param_3 - (long)param_2;\n  local_38 = param_2;\n  local_30 = param_3;\n  psVar1 = param_1;\n  if (0xf < local_48) {\n    pcVar2 = (char *)_M_create(param_1,&local_48,0);\n    _M_data(param_1,pcVar2);\n    _M_capacity(param_1,local_48);\n    psVar1 = local_28;\n  }\n  local_28 = psVar1;\n  _M_construct<char_const*>(char_const*,char_const*,std::forward_iterator_tag)::_Guard::_Guard(std::\n  __cxx11::string__(&local_40,param_1);\n  pcVar2 = (char *)_M_data(param_1);\n  _S_copy_chars<char_const*>(pcVar2,param_2,param_3);\n  local_40 = 0;\n  _M_set_length(param_1,local_48);\n  _M_construct<char_const*>(char_const*,char_const*,std::forward_iterator_tag)::_Guard::~_Guard\n            ((_Guard *)&local_40);\n  if (local_20 == *(long *)(in_FS_OFFSET + 0x28)) {\n    return;\n  }\n                    /* WARNING: Subroutine does not return */\n  __stack_chk_fail();\n}"
+    },
+    {
+      "id": "0x00102740",
+      "label": "_M_data",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_data() const */\n\nundefined8 __thiscall std::__cxx11::string::_M_data(string *this)\n\n{\n  return *(undefined8 *)this;\n}"
+    },
+    {
+      "id": "0x00102751",
+      "label": "_S_copy_chars<char_const*>",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* void std::__cxx11::string::_S_copy_chars<char const*>(char*, char const*, char const*) */\n\nvoid std::__cxx11::string::_S_copy_chars<char_const*>(char *param_1,char *param_2,char *param_3)\n\n{\n  _S_copy(param_1,param_2,(long)param_3 - (long)param_2);\n  return;\n}"
+    },
+    {
+      "id": "0x0010278e",
+      "label": "_S_copy",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_S_copy(char*, char const*, unsigned long) */\n\nvoid std::__cxx11::string::_S_copy(char *param_1,char *param_2,ulong param_3)\n\n{\n  if (param_3 == 1) {\n    char_traits<char>::assign(param_1,param_2);\n  }\n  else {\n    char_traits<char>::copy(param_1,param_2,param_3);\n  }\n  return;\n}"
+    },
+    {
+      "id": "0x001027d8",
+      "label": "_M_set_length",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_set_length(unsigned long) */\n\nvoid __thiscall std::__cxx11::string::_M_set_length(string *this,ulong param_1)\n\n{\n  long lVar1;\n  long in_FS_OFFSET;\n  char local_11;\n  long local_10;\n  \n  local_10 = *(long *)(in_FS_OFFSET + 0x28);\n  local_11 = '\\0';\n  lVar1 = _M_data(this);\n  char_traits<char>::assign((char *)(param_1 + lVar1),&local_11);\n  _M_length(this,param_1);\n  if (local_10 != *(long *)(in_FS_OFFSET + 0x28)) {\n                    /* WARNING: Subroutine does not return */\n    __stack_chk_fail();\n  }\n  return;\n}"
+    },
+    {
+      "id": "0x00102848",
+      "label": "~string",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::~string() */\n\nvoid __thiscall std::__cxx11::string::~string(string *this)\n\n{\n  _M_dispose(this);\n  _Alloc_hider::~_Alloc_hider((_Alloc_hider *)this);\n  return;\n}"
+    },
+    {
+      "id": "0x00102870",
+      "label": "_M_create",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_create(unsigned long&, unsigned long) */\n\nvoid __thiscall std::__cxx11::string::_M_create(string *this,ulong *param_1,ulong param_2)\n\n{\n  ulong uVar1;\n  ulong uVar2;\n  allocator *paVar3;\n  \n  uVar2 = *param_1;\n  uVar1 = max_size();\n  if (uVar1 < uVar2) {\n    std::__throw_length_error(\"basic_string::_M_create\");\n  }\n  if ((param_2 < *param_1) && (*param_1 < param_2 * 2)) {\n    *param_1 = param_2 * 2;\n    uVar2 = *param_1;\n    uVar1 = max_size();\n    if (uVar1 < uVar2) {\n      uVar2 = max_size();\n      *param_1 = uVar2;\n    }\n  }\n  uVar2 = *param_1;\n  paVar3 = (allocator *)_M_get_allocator(this);\n  _S_allocate(paVar3,uVar2 + 1);\n  return;\n}"
+    },
+    {
+      "id": "0x00102938",
+      "label": "_M_data",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_data(char*) */\n\nvoid __thiscall std::__cxx11::string::_M_data(string *this,char *param_1)\n\n{\n  *(char **)this = param_1;\n  return;\n}"
+    },
+    {
+      "id": "0x00102952",
+      "label": "_M_capacity",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_capacity(unsigned long) */\n\nvoid __thiscall std::__cxx11::string::_M_capacity(string *this,ulong param_1)\n\n{\n  *(ulong *)(this + 0x10) = param_1;\n  return;\n}"
+    },
+    {
+      "id": "0x0010296e",
+      "label": "_M_dispose",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_dispose() */\n\nvoid __thiscall std::__cxx11::string::_M_dispose(string *this)\n\n{\n  char cVar1;\n  \n  cVar1 = _M_is_local(this);\n  if (cVar1 != '\\x01') {\n    _M_destroy(this,*(ulong *)(this + 0x10));\n  }\n  return;\n}"
+    },
+    {
+      "id": "0x001029a8",
+      "label": "_M_length",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_length(unsigned long) */\n\nvoid __thiscall std::__cxx11::string::_M_length(string *this,ulong param_1)\n\n{\n  *(ulong *)(this + 8) = param_1;\n  return;\n}"
+    },
+    {
+      "id": "0x001029c4",
+      "label": "_M_is_local",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_is_local() const */\n\nbool __thiscall std::__cxx11::string::_M_is_local(string *this)\n\n{\n  long lVar1;\n  long lVar2;\n  \n  lVar1 = _M_data(this);\n  lVar2 = _M_local_data(this);\n  return lVar1 == lVar2;\n}"
+    },
+    {
+      "id": "0x00102a14",
+      "label": "_M_get_allocator",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_get_allocator() */\n\nstring * __thiscall std::__cxx11::string::_M_get_allocator(string *this)\n\n{\n  return this;\n}"
+    },
+    {
+      "id": "0x00102a22",
+      "label": "min<unsigned_long>",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* WARNING: Unknown calling convention -- yet parameter storage is locked */\n/* unsigned long const& std::min<unsigned long>(unsigned long const&, unsigned long const&) */\n\nulong * std::min<unsigned_long>(ulong *param_1,ulong *param_2)\n\n{\n  if (*param_2 < *param_1) {\n    param_1 = param_2;\n  }\n  return param_1;\n}"
+    },
+    {
+      "id": "0x00102a4e",
+      "label": "max_size",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::max_size() const */\n\nlong std::__cxx11::string::max_size(void)\n\n{\n  ulong *puVar1;\n  long in_FS_OFFSET;\n  ulong local_20 [3];\n  \n  local_20[2] = *(long *)(in_FS_OFFSET + 0x28);\n  local_20[0] = 0x7fffffffffffffff;\n  local_20[1] = 0xffffffffffffffff;\n  puVar1 = min<unsigned_long>(local_20,local_20 + 1);\n  if (local_20[2] != *(long *)(in_FS_OFFSET + 0x28)) {\n                    /* WARNING: Subroutine does not return */\n    __stack_chk_fail();\n  }\n  return *puVar1 - 1;\n}"
+    },
+    {
+      "id": "0x00102aaf",
+      "label": "_S_allocate",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_S_allocate(std::allocator<char>&, unsigned long) */\n\nundefined8 std::__cxx11::string::_S_allocate(allocator *param_1,ulong param_2)\n\n{\n  long lVar1;\n  undefined8 uVar2;\n  long in_FS_OFFSET;\n  \n  lVar1 = *(long *)(in_FS_OFFSET + 0x28);\n  uVar2 = __new_allocator<char>::allocate((ulong)param_1,(void *)param_2);\n  if (lVar1 != *(long *)(in_FS_OFFSET + 0x28)) {\n                    /* WARNING: Subroutine does not return */\n    __stack_chk_fail();\n  }\n  return uVar2;\n}"
+    },
+    {
+      "id": "0x00102b26",
+      "label": "_M_destroy",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_destroy(unsigned long) */\n\nvoid __thiscall std::__cxx11::string::_M_destroy(string *this,ulong param_1)\n\n{\n  char *pcVar1;\n  __new_allocator<char> *this_00;\n  \n  pcVar1 = (char *)_M_data(this);\n  this_00 = (__new_allocator<char> *)_M_get_allocator(this);\n  __new_allocator<char>::deallocate(this_00,pcVar1,param_1 + 1);\n  return;\n}"
+    },
+    {
+      "id": "0x00102ba2",
+      "label": "_M_local_data",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__cxx11::string::_M_local_data() const */\n\nvoid __thiscall std::__cxx11::string::_M_local_data(string *this)\n\n{\n  __ptr_traits_ptr_to<char_const*,char_const,false>::pointer_to((char *)(this + 0x10));\n  return;\n}"
+    },
+    {
+      "id": "0x00102bc0",
+      "label": "pointer_to",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__ptr_traits_ptr_to<char const*, char const, false>::pointer_to(char const&) */\n\nchar * std::__ptr_traits_ptr_to<char_const*,char_const,false>::pointer_to(char *param_1)\n\n{\n  return param_1;\n}"
+    },
+    {
+      "id": "0x00102bd6",
+      "label": "allocate",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__new_allocator<char>::allocate(unsigned long, void const*) */\n\nvoid std::__new_allocator<char>::allocate(ulong param_1,void *param_2)\n\n{\n  if ((void *)0x7fffffffffffffff < param_2) {\n    std::__throw_bad_alloc();\n  }\n  operator_new((ulong)param_2);\n  return;\n}"
+    },
+    {
+      "id": "0x00102c24",
+      "label": "deallocate",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "/* std::__new_allocator<char>::deallocate(char*, unsigned long) */\n\nvoid __thiscall\nstd::__new_allocator<char>::deallocate(__new_allocator<char> *this,char *param_1,ulong param_2)\n\n{\n  operator_delete(param_1,param_2);\n  return;\n}"
+    },
+    {
+      "id": "0xEXTERNAL:0000000a",
+      "label": "__libc_start_main",
+      "type": "import",
+      "summary": "Sets up the C runtime, calls main, then exits with main's return value.",
+      "decompiled": "// Imported function\nundefined __libc_start_main();"
+    },
+    {
+      "id": "0xEXTERNAL:00000015",
+      "label": "__cxa_throw",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nundefined __cxa_throw();"
+    },
+    {
+      "id": "0xEXTERNAL:00000002",
+      "label": "runtime_error",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nundefined runtime_error(runtime_error * this, char * param_1);"
+    },
+    {
+      "id": "0xEXTERNAL:00000006",
+      "label": "__cxa_allocate_exception",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nundefined __cxa_allocate_exception();"
+    },
+    {
+      "id": "0xEXTERNAL:00000010",
+      "label": "~runtime_error",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nundefined ~runtime_error(runtime_error * this);"
+    },
+    {
+      "id": "0xEXTERNAL:0000000c",
+      "label": "operator<<",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nostream * operator<<(ostream * param_1, string * param_2);"
+    },
+    {
+      "id": "0xEXTERNAL:00000011",
+      "label": "__stack_chk_fail",
+      "type": "import",
+      "summary": "Called when the stack canary has been overwritten, meaning a buffer overflow was detected. The program aborts.",
+      "decompiled": "// Imported function\nundefined __stack_chk_fail();"
+    },
+    {
+      "id": "0xEXTERNAL:00000016",
+      "label": "operator<<",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nundefined operator<<(ostream * this, int param_1);"
+    },
+    {
+      "id": "0xEXTERNAL:0000000d",
+      "label": "operator<<",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nostream * operator<<(ostream * param_1, char * param_2);"
+    },
+    {
+      "id": "0xEXTERNAL:00000005",
+      "label": "strlen",
+      "type": "import",
+      "summary": "Returns the length of a string (number of characters before the terminating zero byte).",
+      "decompiled": "// Imported function\nsize_t strlen(char * __s);"
+    },
+    {
+      "id": "0xEXTERNAL:0000000b",
+      "label": "memcpy",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nvoid * memcpy(void * __dest, void * __src, size_t __n);"
+    },
+    {
+      "id": "0xEXTERNAL:00000008",
+      "label": "__throw_logic_error",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nundefined __throw_logic_error(char * param_1);"
+    },
+    {
+      "id": "0xEXTERNAL:00000007",
+      "label": "__throw_length_error",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nundefined __throw_length_error(char * param_1);"
+    },
+    {
+      "id": "0xEXTERNAL:00000001",
+      "label": "__throw_bad_alloc",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nundefined __throw_bad_alloc(void);"
+    },
+    {
+      "id": "0xEXTERNAL:0000000e",
+      "label": "operator.new",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nvoid * operator.new(ulong param_1);"
+    },
+    {
+      "id": "0xEXTERNAL:0000000f",
+      "label": "operator.delete",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nvoid operator.delete(void * param_1, ulong param_2);"
+    }
+  ],
+  "edges": [
+    {
+      "source": "0x00102150",
+      "target": "0xEXTERNAL:0000000a"
+    },
+    {
+      "source": "0x00102150",
+      "target": "0x001022be"
+    },
+    {
+      "source": "0x00102249",
+      "target": "0xEXTERNAL:00000015"
+    },
+    {
+      "source": "0x00102249",
+      "target": "0xEXTERNAL:00000002"
+    },
+    {
+      "source": "0x00102249",
+      "target": "0xEXTERNAL:00000006"
+    },
+    {
+      "source": "0x00102249",
+      "target": "0xEXTERNAL:00000010"
+    },
+    {
+      "source": "0x001022be",
+      "target": "0xEXTERNAL:0000000c"
+    },
+    {
+      "source": "0x001022be",
+      "target": "0x00102848"
+    },
+    {
+      "source": "0x001022be",
+      "target": "0xEXTERNAL:00000011"
+    },
+    {
+      "source": "0x001022be",
+      "target": "0xEXTERNAL:00000016"
+    },
+    {
+      "source": "0x001022be",
+      "target": "0xEXTERNAL:0000000d"
+    },
+    {
+      "source": "0x001022be",
+      "target": "0x00102249"
+    },
+    {
+      "source": "0x001022be",
+      "target": "0x001024e4"
+    },
+    {
+      "source": "0x00102440",
+      "target": "0xEXTERNAL:00000005"
+    },
+    {
+      "source": "0x0010245b",
+      "target": "0xEXTERNAL:0000000b"
+    },
+    {
+      "source": "0x001024b0",
+      "target": "0x001024ce"
+    },
+    {
+      "source": "0x001024e4",
+      "target": "0x00102584"
+    },
+    {
+      "source": "0x001024e4",
+      "target": "0x00102608"
+    },
+    {
+      "source": "0x001024e4",
+      "target": "0x001024b0"
+    },
+    {
+      "source": "0x001024e4",
+      "target": "0xEXTERNAL:00000008"
+    },
+    {
+      "source": "0x001024e4",
+      "target": "0x00102440"
+    },
+    {
+      "source": "0x001025de",
+      "target": "0x0010296e"
+    },
+    {
+      "source": "0x00102608",
+      "target": "0x00102751"
+    },
+    {
+      "source": "0x00102608",
+      "target": "0xEXTERNAL:00000011"
+    },
+    {
+      "source": "0x00102608",
+      "target": "0x001025de"
+    },
+    {
+      "source": "0x00102608",
+      "target": "0x00102740"
+    },
+    {
+      "source": "0x00102608",
+      "target": "0x001025c4"
+    },
+    {
+      "source": "0x00102608",
+      "target": "0x00102870"
+    },
+    {
+      "source": "0x00102608",
+      "target": "0x00102938"
+    },
+    {
+      "source": "0x00102608",
+      "target": "0x00102952"
+    },
+    {
+      "source": "0x00102608",
+      "target": "0x001027d8"
+    },
+    {
+      "source": "0x00102751",
+      "target": "0x0010278e"
+    },
+    {
+      "source": "0x0010278e",
+      "target": "0x0010245b"
+    },
+    {
+      "source": "0x0010278e",
+      "target": "0x00102424"
+    },
+    {
+      "source": "0x001027d8",
+      "target": "0x001029a8"
+    },
+    {
+      "source": "0x001027d8",
+      "target": "0xEXTERNAL:00000011"
+    },
+    {
+      "source": "0x001027d8",
+      "target": "0x00102424"
+    },
+    {
+      "source": "0x001027d8",
+      "target": "0x00102740"
+    },
+    {
+      "source": "0x00102848",
+      "target": "0x0010296e"
+    },
+    {
+      "source": "0x00102848",
+      "target": "0x0010249c"
+    },
+    {
+      "source": "0x00102870",
+      "target": "0x00102a14"
+    },
+    {
+      "source": "0x00102870",
+      "target": "0x00102a4e"
+    },
+    {
+      "source": "0x00102870",
+      "target": "0x00102aaf"
+    },
+    {
+      "source": "0x00102870",
+      "target": "0xEXTERNAL:00000007"
+    },
+    {
+      "source": "0x0010296e",
+      "target": "0x00102b26"
+    },
+    {
+      "source": "0x0010296e",
+      "target": "0x001029c4"
+    },
+    {
+      "source": "0x001029c4",
+      "target": "0x00102740"
+    },
+    {
+      "source": "0x001029c4",
+      "target": "0x00102ba2"
+    },
+    {
+      "source": "0x00102a4e",
+      "target": "0xEXTERNAL:00000011"
+    },
+    {
+      "source": "0x00102a4e",
+      "target": "0x00102a22"
+    },
+    {
+      "source": "0x00102aaf",
+      "target": "0xEXTERNAL:00000011"
+    },
+    {
+      "source": "0x00102aaf",
+      "target": "0x00102bd6"
+    },
+    {
+      "source": "0x00102b26",
+      "target": "0x00102a14"
+    },
+    {
+      "source": "0x00102b26",
+      "target": "0x00102740"
+    },
+    {
+      "source": "0x00102b26",
+      "target": "0x00102c24"
+    },
+    {
+      "source": "0x00102ba2",
+      "target": "0x00102bc0"
+    },
+    {
+      "source": "0x00102bd6",
+      "target": "0xEXTERNAL:00000001"
+    },
+    {
+      "source": "0x00102bd6",
+      "target": "0xEXTERNAL:0000000e"
+    },
+    {
+      "source": "0x00102c24",
+      "target": "0xEXTERNAL:0000000f"
+    }
+  ],
+  "traces": [
+    {
+      "label": "no arguments",
+      "events": [
+        {
+          "t": "enter",
+          "fn": "0x00102150"
+        },
+        {
+          "t": "call",
+          "from": "0x00102150",
+          "to": "0xEXTERNAL:0000000a",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0xEXTERNAL:0000000a",
+          "to": "0x001022be",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x001022be",
+          "to": "0x001024e4",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x001024e4",
+          "to": "0x001024b0",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x001024b0",
+          "to": "0x001024ce",
+          "args": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x001024ce",
+          "val": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x001024b0",
+          "val": ""
+        },
+        {
+          "t": "call",
+          "from": "0x001024e4",
+          "to": "0x00102584",
+          "args": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00102584",
+          "val": ""
+        },
+        {
+          "t": "call",
+          "from": "0x001024e4",
+          "to": "0x00102440",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x00102440",
+          "to": "0xEXTERNAL:00000005",
+          "args": "\"hi \""
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000005",
+          "val": "3"
+        },
+        {
+          "t": "ret",
+          "fn": "0x00102440",
+          "val": ""
+        },
+        {
+          "t": "call",
+          "from": "0x001024e4",
+          "to": "0x00102608",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x00102608",
+          "to": "0x001025c4",
+          "args": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x001025c4",
+          "val": ""
+        },
+        {
+          "t": "call",
+          "from": "0x00102608",
+          "to": "0x00102740",
+          "args": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00102740",
+          "val": ""
+        },
+        {
+          "t": "call",
+          "from": "0x00102608",
+          "to": "0x00102751",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x00102751",
+          "to": "0x0010278e",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x0010278e",
+          "to": "0x0010245b",
+          "args": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x0010245b",
+          "val": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x0010278e",
+          "val": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00102751",
+          "val": ""
+        },
+        {
+          "t": "call",
+          "from": "0x00102608",
+          "to": "0x001027d8",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x001027d8",
+          "to": "0x00102740",
+          "args": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00102740",
+          "val": ""
+        },
+        {
+          "t": "call",
+          "from": "0x001027d8",
+          "to": "0x00102424",
+          "args": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00102424",
+          "val": ""
+        },
+        {
+          "t": "call",
+          "from": "0x001027d8",
+          "to": "0x001029a8",
+          "args": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x001029a8",
+          "val": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x001027d8",
+          "val": ""
+        },
+        {
+          "t": "call",
+          "from": "0x00102608",
+          "to": "0x001025de",
+          "args": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x001025de",
+          "val": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00102608",
+          "val": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x001024e4",
+          "val": ""
+        },
+        {
+          "t": "call",
+          "from": "0x001022be",
+          "to": "0xEXTERNAL:0000000c",
+          "args": "0x5555555590c0, 0x7fffffffe4b0"
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:0000000c",
+          "val": "0x5555555590c0"
+        },
+        {
+          "t": "call",
+          "from": "0x001022be",
+          "to": "0x00102249",
+          "args": ""
+        },
+        {
+          "t": "ret",
+          "fn": "0x00102249",
+          "val": ""
+        },
+        {
+          "t": "call",
+          "from": "0x001022be",
+          "to": "0xEXTERNAL:0000000c",
+          "args": "0x5555555590c0, 2"
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:0000000c",
+          "val": "0x5555555590c0"
+        },
+        {
+          "t": "call",
+          "from": "0x001022be",
+          "to": "0xEXTERNAL:0000000c",
+          "args": "0x5555555590c0, \"\\n\""
+        },
+        {
+          "t": "end",
+          "ok": false,
+          "level": "error",
+          "note": "CRASHED (SIGSEGV)",
+          "output": ""
+        }
+      ]
+    }
+  ]
+}

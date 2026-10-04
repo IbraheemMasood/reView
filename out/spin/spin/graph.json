@@ -1,0 +1,57 @@
+{
+  "nodes": [
+    {
+      "id": "0x00101050",
+      "label": "_start",
+      "type": "entry",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "void processEntry _start(undefined8 param_1,undefined8 param_2)\n\n{\n  undefined1 auStack_8 [8];\n  \n  (*(code *)PTR___libc_start_main_00103fc0)(main,param_2,&stack0x00000008,0,0,param_1,auStack_8);\n  do {\n                    /* WARNING: Do nothing block with infinite loop */\n  } while( true );\n}"
+    },
+    {
+      "id": "0x00101149",
+      "label": "main",
+      "type": "entry",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "void main(void)\n\n{\n  puts(\"spinning\");\n  fflush(stdout);\n  do {\n                    /* WARNING: Do nothing block with infinite loop */\n  } while( true );\n}"
+    },
+    {
+      "id": "0xEXTERNAL:00000001",
+      "label": "__libc_start_main",
+      "type": "import",
+      "summary": "Sets up the C runtime, calls main, then exits with main's return value.",
+      "decompiled": "// Imported function\nundefined __libc_start_main();"
+    },
+    {
+      "id": "0xEXTERNAL:00000003",
+      "label": "fflush",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nint fflush(FILE * __stream);"
+    },
+    {
+      "id": "0xEXTERNAL:00000002",
+      "label": "puts",
+      "type": "import",
+      "summary": "Prints a string followed by a newline. Compilers often turn printf(\"text\\n\") into puts.",
+      "decompiled": "// Imported function\nint puts(char * __s);"
+    }
+  ],
+  "edges": [
+    {
+      "source": "0x00101050",
+      "target": "0xEXTERNAL:00000001"
+    },
+    {
+      "source": "0x00101050",
+      "target": "0x00101149"
+    },
+    {
+      "source": "0x00101149",
+      "target": "0xEXTERNAL:00000003"
+    },
+    {
+      "source": "0x00101149",
+      "target": "0xEXTERNAL:00000002"
+    }
+  ]
+}
