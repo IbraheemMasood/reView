@@ -627,6 +627,12 @@ body.sb-open #sidebarBtnIcon { transform: rotate(180deg); }
     #traceSelect { width: 170px; }
 }
 
+/* laptop projectors are often 720p: leave the graph most of the height */
+@media (max-height: 820px) {
+    #tracePanel { height: 270px; }
+    .log-row.old .log-head { font-size: 12px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
