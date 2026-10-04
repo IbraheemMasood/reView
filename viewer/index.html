@@ -58,6 +58,16 @@
             <input id="traceInput" value="AREV3RSZ" placeholder="Key / arguments…" spellcheck="false" maxlength="128"
                    title="Input passed to the program"
                    class="w-40 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:border-cyan-500">
+            <div id="liveBar" class="hidden flex items-center space-x-2 pl-2 border-l border-slate-800">
+                <select id="liveMode" title="How the input is given to the program"
+                        class="bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-sm">
+                    <option value="args">args</option>
+                    <option value="stdin">stdin</option>
+                </select>
+                <input id="liveInput" placeholder="e.g. AREV3RSZ" spellcheck="false" maxlength="256"
+                       class="w-40 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:border-cyan-500">
+                <button id="liveBtn" class="btn btn-primary text-sm" title="Run the program with this input and animate it">⚡ Run live</button>
+            </div>
             <button id="traceBtn" title="Animate a run of the program through the call graph"
                     class="btn btn-primary text-sm">▶ Trace
             </button>
