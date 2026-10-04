@@ -1,8 +1,8 @@
 const PLACEHOLDER = 'Click on nodes to inspect execution pathways.';
 const TYPE_INFO = {
-    entry:  'Entry point. main is where the program\'s own logic starts. _start is a tiny stub the OS jumps to first; it sets things up and then hands control to main.',
-    custom: 'Code written inside this program. These are the functions worth reading closely.',
-    import: 'A library function (e.g. from libc). Its code lives outside this binary, so look it up in the docs instead of reversing it.'
+    entry:  'Program entry point. _start prepares the process; main begins the program logic.',
+    custom: 'Function defined in this program.',
+    import: 'Function provided by an external library.'
 };
 const BADGE = {
     entry:  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
@@ -23,6 +23,8 @@ const INTEREST = {
 let cy = null, nodes = new Map(), out = new Map(), inn = new Map();
 let visible = new Set(), rootId = null;
 let interest = new Map(), showInterest = true;
+let layoutDirection = null;
+const positionCache = new Map();
 const $ = id => document.getElementById(id);
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const motionDuration = ms => reducedMotion.matches ? 0 : ms;
@@ -115,7 +117,8 @@ function findRoot() {
     return r ? r.id : null;
 }
 
-$('fileInput').addEventListener('change', e => {
+const fileInput = $('fileInput');
+fileInput?.addEventListener('change', e => {
     const f = e.target.files[0];
     if (!f) return;
     f.text().then(t => { loadGraph(JSON.parse(t)); graphLabel = f.name.replace(/\.json$/i, ''); updateWorkspace(); }).catch(showLoadError);
@@ -168,7 +171,7 @@ function createCy() {
     });
     cy.on('tap', 'node', evt => {
         const id = evt.target.id();
-        if (trace.busy) { inspect(id, true); return; }   // don't move nodes under the token
+        if (trace.active || trace.busy) { inspect(id, true); return; }   // keep the trace graph fixed while it is active
         const needOpen = sidebarClosed();
         const expanded = shouldCollapse(id);
         const before = new Set(visible);
@@ -180,6 +183,10 @@ function createCy() {
         if (fresh.length) placeNew(fresh);
         if (needOpen) openSidebar();
         if (fresh.length) setTimeout(() => revealInView(cy.nodes().filter(n => fresh.includes(n.id())).union(evt.target)), needOpen ? 320 : 0);
+    });
+    cy.on('dragfree', 'node', evt => {
+        const n = evt.target;
+        if (!n.hasClass('token')) positionCache.set(n.id(), { ...n.position() });
     });
 
     cy.on('mouseover', 'node', evt => {
@@ -263,6 +270,7 @@ function collapseNode(id) {
     const drop = collapsePlan(id);
     if (!drop.size) return false;
     hideTip();
+    cachePositions(drop);
     cy.remove(cy.nodes().filter(n => drop.has(n.id())));
     drop.forEach(n => visible.delete(n));
     cy.elements().removeClass('faded hl');
@@ -299,7 +307,9 @@ function ensureVisible(ids) {
     added.forEach(id => visible.add(id));
     cy.add(added.map(id => {
         const n = nodes.get(id);
+        const position = positionCache.get(id);
         return { data: { id, label: shortLabel(nameOf(id)), type: n.type || 'custom' },
+            ...(position ? { position: { ...position } } : {}),
             classes: (showInterest && interest.has(id)) ? 'interest' : '' };
     }));
     const edges = [];
@@ -320,13 +330,29 @@ function ensureVisible(ids) {
 /* ---------- incremental placement (keeps existing nodes where they are) ---------- */
 const GAP_X = 230, GAP_Y = 108;
 
-// Positions only the newly added nodes: callees go below a node they're called by, callers above,
-// fanning out sideways until there's a free slot. Nodes already on screen never move.
+function cachePositions(ids) {
+    if (!cy) return;
+    const selected = ids ? new Set(ids) : null;
+    cy.nodes().not('.token').forEach(n => {
+        if (!selected || selected.has(n.id())) positionCache.set(n.id(), { ...n.position() });
+    });
+}
+
+// Places only unseen nodes along the same axis as the graph's initial layout.
 function placeNew(fresh) {
     const pos = new Map();
     cy.nodes().not('.token').forEach(n => { if (!fresh.includes(n.id())) pos.set(n.id(), { ...n.position() }); });
-    const free = (x, y) => { for (const q of pos.values()) if (Math.abs(q.x - x) < 215 && Math.abs(q.y - y) < 60) return false; return true; };
-    const todo = new Set(fresh);
+    // A collapsed node can return at its old position. Treat it as pinned while placing new nodes.
+    fresh.forEach(id => {
+        const saved = positionCache.get(id);
+        if (saved) pos.set(id, { ...saved });
+    });
+    const free = (x, y) => {
+        for (const q of pos.values())
+            if (Math.abs(q.x - x) < 215 && Math.abs(q.y - y) < 60) return false;
+        return true;
+    };
+    const todo = new Set(fresh.filter(id => !pos.has(id)));
     while (todo.size) {
         let progressed = false;
         for (const id of [...todo]) {
@@ -335,19 +361,36 @@ function placeNew(fresh) {
             const ref = parent !== undefined ? parent : child;
             if (ref === undefined) continue;
             const base = pos.get(ref);
-            const y = base.y + (parent !== undefined ? GAP_Y : -GAP_Y);
-            let x = base.x, k = 0;
-            while (!free(x, y) && k < 400) { x = base.x + (k % 2 ? -1 : 1) * Math.ceil((k + 1) / 2) * GAP_X; k++; }
+            let x = base.x, y = base.y, k = 0;
+            const sign = parent !== undefined ? 1 : -1;
+            if (layoutDirection === 'LR') x += sign * GAP_X;
+            else y += sign * GAP_Y;
+            while (!free(x, y) && k < 400) {
+                const fan = Math.ceil((k + 1) / 2) * GAP_Y * (k % 2 ? -1 : 1);
+                if (layoutDirection === 'LR') { x = base.x + sign * GAP_X; y = base.y + fan; }
+                else { y = base.y + sign * GAP_Y; x = base.x + fan * (GAP_X / GAP_Y); }
+                k++;
+            }
             pos.set(id, { x, y }); todo.delete(id); progressed = true;
         }
-        if (!progressed) {                       // not connected to anything on screen: park it to the right
+        if (!progressed) {                       // disconnected additions continue in the graph's rank direction
             const id = [...todo][0];
-            const bb = cy.nodes().not('.token').boundingBox();
-            pos.set(id, { x: isFinite(bb.x2) ? bb.x2 + GAP_X : 0, y: isFinite(bb.y1) ? bb.y1 : 0 });
+            const points = [...pos.values()];
+            const xs = points.map(p => p.x), ys = points.map(p => p.y);
+            const x = layoutDirection === 'LR' ? (xs.length ? Math.max(...xs) + GAP_X : 0) : (xs.length ? Math.min(...xs) : 0);
+            const y = layoutDirection === 'LR' ? (ys.length ? Math.min(...ys) : 0) : (ys.length ? Math.max(...ys) + GAP_Y : 0);
+            let candidateX = x, candidateY = y, k = 0;
+            while (!free(candidateX, candidateY) && k < 400) {
+                if (layoutDirection === 'LR') candidateY += (k % 2 ? -1 : 1) * Math.ceil((k + 1) / 2) * GAP_Y;
+                else candidateX += (k % 2 ? -1 : 1) * Math.ceil((k + 1) / 2) * GAP_X;
+                k++;
+            }
+            pos.set(id, { x: candidateX, y: candidateY });
             todo.delete(id);
         }
     }
     cy.batch(() => fresh.forEach(id => cy.getElementById(id).position(pos.get(id))));
+    cachePositions(fresh);
 }
 
 // Only moves the camera if the given nodes aren't comfortably on screen (never zooms in)
@@ -364,15 +407,17 @@ function revealInView(eles) {
 function runLayout(cb) {
     const l = cy.elements().not('.token').layout({
         name: typeof dagre !== 'undefined' ? 'dagre' : 'breadthfirst',
-        rankDir: window.innerWidth < 600 ? 'TB' : 'LR', nodeSep: window.innerWidth < 600 ? 20 : 28, rankSep: 64, padding: window.innerWidth < 600 ? 20 : 60,
-        animate: !reducedMotion.matches, animationDuration: motionDuration(400), fit: true
+        rankDir: layoutDirection || (window.innerWidth < 600 ? 'TB' : 'LR'), nodeSep: window.innerWidth < 600 ? 20 : 28, rankSep: 64, padding: window.innerWidth < 600 ? 20 : 60,
+        animate: false, animationDuration: 0, fit: true
     });
-    if (cb) l.one('layoutstop', cb);
+    l.one('layoutstop', () => { cachePositions(); if (cb) cb(); });
     l.run();
 }
 
 function resetView() {
     traceClear();
+    positionCache.clear();
+    layoutDirection = window.innerWidth < 600 ? 'TB' : 'LR';
     visible = new Set();
     updateExpandBtn();
     createCy();
@@ -381,13 +426,17 @@ function resetView() {
     $('searchInput').value = '';
     functionFilter = 'all';
     document.querySelectorAll('[data-filter]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.filter === 'all')));
-    if (!rootId) return;
+    if (!rootId) {
+        if ($('statusText')) $('statusText').textContent = 'Graph view reset';
+        return;
+    }
     const first = out.get(rootId) || [];
     const second = first.flatMap(id => out.get(id) || []);
     ensureVisible(window.innerWidth < 600 ? [rootId, ...first.slice(0, 2)] : [rootId, ...first, ...second].slice(0, 22));
     runLayout();
     inspect(rootId);
     renderFunctionList();
+    if ($('statusText')) $('statusText').textContent = 'Graph view reset';
 }
 
 /* ---------- inspector ---------- */
@@ -440,7 +489,7 @@ function inspect(id, quiet) {
 
     $('intro').classList.add('hidden');
     $('detail').classList.remove('hidden');
-    $('funcTypeBadge').className = 'text-[10px] font-mono tracking-wider uppercase border px-2 py-0.5 rounded ' + (BADGE[type] || BADGE.custom);
+    $('funcTypeBadge').className = 'function-type-badge ' + (BADGE[type] || BADGE.custom);
     $('funcTypeBadge').textContent = type;
     inspectedId = id;
     $('funcName').textContent = nameOf(id);
@@ -456,10 +505,10 @@ function inspect(id, quiet) {
     why.forEach(r => { const li = document.createElement('li'); li.textContent = r; wl.appendChild(li); });
     $('whyBox').classList.toggle('hidden', !why.length);
 
-    const has = n.summary && n.summary !== PLACEHOLDER;
-    $('aiSummary').textContent = has ? n.summary :
-        'No AI summary is available for this function. Explore its connections and decompiled source below.';
-    $('aiSummary').className = 'leading-relaxed whitespace-pre-line ' + (has ? 'text-slate-100' : 'text-sm text-slate-500 italic');
+    const has = typeof n.summary === 'string' && n.summary.trim() && n.summary !== PLACEHOLDER;
+    const summaryBox = $('summaryBox') || $('aiSummary')?.closest('details');
+    summaryBox?.classList.toggle('hidden', !has);
+    if ($('aiSummary')) $('aiSummary').textContent = has ? n.summary : '';
 
     $('connCount').textContent = '· ' + (inn.get(id) || []).length + ' in, ' + (out.get(id) || []).length + ' out';
     fillChips($('callers'), inn.get(id), 'nobody (or not in view)');
@@ -671,6 +720,12 @@ function setupTrace() {
     }
     sel.disabled = !sel.querySelector('option');
     if (sel.disabled) { const o = document.createElement('option'); o.textContent = 'no traces'; sel.appendChild(o); }
+    const availability = $('traceAvailability');
+    if (availability) {
+        const unavailable = sel.disabled && !liveCfg;
+        availability.textContent = unavailable ? 'No execution traces are available for this graph.' : '';
+        availability.classList.toggle('hidden', !unavailable);
+    }
 
     // live mode: the Trace button runs whatever is typed in the live bar; otherwise it plays the selection
     $('traceSelect').classList.toggle('hidden', !!liveCfg);
@@ -717,7 +772,11 @@ function traceStart(events, autoplay) {
         updateTraceBtns();
         if (autoplay) setTimeout(() => { if (run === trace.run) tracePlay(); }, 350);
     };
-    if (ensureVisible([...prep.ids])) runLayout(go); else go();
+    const before = new Set(visible);
+    ensureVisible([...prep.ids]);
+    const fresh = [...visible].filter(id => !before.has(id));
+    if (fresh.length) placeNew(fresh);
+    go();
 }
 
 const traceSpeed = () => TRACE_SPEED[$('traceSpeed').value] || TRACE_SPEED.normal;
@@ -740,6 +799,7 @@ async function tracePlay() {
 async function traceStep() {
     if (trace.busy || !trace.active || trace.i >= trace.events.length) return;
     trace.busy = true;
+    updateTraceBtns();
     const run = trace.run;
     const e = trace.events[trace.i++];
     try { await applyEvent(e, run); }
@@ -872,9 +932,15 @@ function renderStack() {
 
 function updateTraceBtns() {
     const finished = trace.active && trace.i >= trace.events.length;
-    $('tracePlay').textContent = trace.playing ? 'Pause' : (finished ? 'Replay' : 'Play');
-    $('traceStep').disabled = trace.busy || finished || (!trace.active && $('traceSelect').disabled);
-    $('tracePlay').disabled = !trace.active && $('traceSelect').disabled;
+    const hasSelection = !!trace.active || !$('traceSelect').disabled;
+    setButtonLabel($('tracePlay'), '.trace-play-label', trace.playing ? 'Pause' : (finished ? 'Replay' : 'Play'));
+    $('tracePlay').setAttribute('aria-label', trace.playing ? 'Pause trace' : (finished ? 'Replay trace' : 'Play trace'));
+    $('tracePlay').setAttribute('aria-pressed', String(trace.playing));
+    $('traceStep').disabled = trace.busy || trace.playing || finished || (!trace.active && !hasSelection);
+    $('tracePlay').disabled = (!trace.active && !hasSelection) || (trace.busy && !trace.playing);
+    $('traceReset').disabled = !trace.active && !trace.busy;
+    updateExpandBtn();
+    $('traceBtn').disabled = liveCfg ? liveBusy : $('traceSelect').disabled || trace.busy;
     if ($('traceProgress')) $('traceProgress').textContent = trace.active ? `${trace.i} / ${trace.events.length} events` : 'Ready';
     if ($('statusText')) $('statusText').textContent = liveBusy ? 'Running under gdb' : trace.playing ? 'Following execution' : finished ? 'Trace complete' : 'Ready to explore';
     $('tracePanel').classList.toggle('is-playing', trace.playing);
@@ -895,12 +961,14 @@ $('traceSelect').addEventListener('change', () => {       // picking another run
     if (!$('tracePanel').classList.contains('hidden')) startDefault(true);
 });
 $('tracePlay').addEventListener('click', () => {
+    if ($('tracePlay').disabled) return;
     if (trace.playing) { trace.playing = false; updateTraceBtns(); } else tracePlay();
 });
 $('traceStep').addEventListener('click', async () => {
+    if ($('traceStep').disabled) return;
     trace.playing = false;
-    if (!trace.active) { startDefault(false); return; }
-    await traceStep();
+    if (!trace.active) startDefault(false);
+    if (trace.active) await traceStep();
     updateTraceBtns();
 });
 $('traceReset').addEventListener('click', traceClear);
@@ -952,26 +1020,54 @@ $('searchInput').addEventListener('keydown', e => {
     if (!cy) return;
     cy.nodes().removeClass('match');
     if (!q) return;
-    const hits = [...nodes.values()].filter(n => (n.label + ' ' + nameOf(n.id)).toLowerCase().includes(q)).map(n => n.id);
-    if (!hits.length) return;
-    const added = ensureVisible(hits);
+    const hits = matchingFunctions(q).map(n => n.id);
+    if (!hits.length) {
+        if ($('statusText')) $('statusText').textContent = 'No matching functions';
+        return;
+    }
+    const before = new Set(visible);
+    ensureVisible(hits);
+    const fresh = [...visible].filter(id => !before.has(id));
+    if (fresh.length) placeNew(fresh);
     hits.forEach(id => cy.getElementById(id).addClass('match'));
-    if (added) runLayout();
-    if (hits.length === 1) focusNode(hits[0]);
+    focusNode(hits[0]);
+    if ($('statusText')) $('statusText').textContent = hits.length === 1 ? '1 matching function' : `${hits.length} matching functions`;
 });
 $('resetBtn').addEventListener('click', resetView);
 $('interestBtn').addEventListener('click', () => {
+    if ($('interestBtn').disabled) return;
     showInterest = !showInterest;
-    $('interestBtn').textContent = 'Interest ' + (showInterest ? 'on' : 'off');
+    setButtonLabel($('interestBtn'), '.interest-label', 'Interest ' + (showInterest ? 'on' : 'off'));
     $('interestBtn').setAttribute('aria-pressed', String(showInterest));
     applyInterest();
+    if ($('statusText')) $('statusText').textContent = 'Interest highlighting ' + (showInterest ? 'on' : 'off');
 });
+
+function setButtonLabel(button, selector, value) {
+    if (!button) return;
+    let label = button.querySelector(selector) || button.querySelector('span:not([aria-hidden="true"])');
+    if (!label) { label = document.createElement('span'); button.appendChild(label); }
+    label.textContent = value;
+}
+
+function updateInterestBtn() {
+    const btn = $('interestBtn');
+    if (!btn) return;
+    const available = interest.size > 0;
+    btn.disabled = !available;
+    btn.title = available ? 'Toggle highlighting for functions worth a closer look' : 'No functions are flagged for closer inspection';
+    setButtonLabel(btn, '.interest-label', 'Interest ' + (showInterest ? 'on' : 'off'));
+    btn.setAttribute('aria-pressed', String(showInterest));
+}
+
 // "Show all" becomes "Hide all" once every node is on screen
 function updateExpandBtn() {
     const all = nodes.size > 0 && visible.size >= nodes.size;
-    $('expandAllBtn').textContent = all ? 'Hide all' : 'Show all';
-    $('expandAllBtn').setAttribute('aria-label', all ? 'Hide all functions except entry' : 'Show all functions');
-    $('expandAllBtn').title = all ? 'Hide all functions except entry' : 'Show all functions';
+    const traceLocked = trace.active || trace.busy;
+    setButtonLabel($('expandAllBtn'), '.action-label', all ? 'Hide all' : 'Show all');
+    $('expandAllBtn').disabled = !nodes.size || traceLocked;
+    $('expandAllBtn').setAttribute('aria-label', traceLocked ? 'Close or reset the trace to change graph visibility' : all ? 'Hide all functions except entry' : 'Show all functions');
+    $('expandAllBtn').title = traceLocked ? 'Close or reset the trace to change graph visibility' : all ? 'Hide all functions except entry' : 'Show all functions';
 }
 
 // everything except main goes away
@@ -981,6 +1077,7 @@ function hideAll() {
     if (!drop.size) return;
     inspect(rootId);
     hideTip();
+    cachePositions(drop);
     cy.remove(cy.nodes().filter(n => drop.has(n.id())));
     drop.forEach(id => visible.delete(id));
     cy.elements().removeClass('faded hl');
@@ -989,9 +1086,18 @@ function hideAll() {
 }
 
 $('expandAllBtn').addEventListener('click', () => {
-    if (trace.busy) return;
-    if (nodes.size > 0 && visible.size >= nodes.size) hideAll();
-    else if (ensureVisible([...nodes.keys()])) runLayout();
+    if ($('expandAllBtn').disabled) return;
+    if (nodes.size > 0 && visible.size >= nodes.size) {
+        hideAll();
+        if ($('statusText')) $('statusText').textContent = 'Entry view restored';
+    } else {
+        const before = new Set(visible);
+        ensureVisible([...nodes.keys()]);
+        const fresh = [...visible].filter(id => !before.has(id));
+        if (fresh.length) placeNew(fresh);
+        fitGraph();
+        if ($('statusText')) $('statusText').textContent = 'All functions shown';
+    }
 });
 
 function toggleSidebar() {
@@ -1115,17 +1221,30 @@ function updateWorkspace(data) {
     $('traceBtn').disabled = !liveCfg && $('traceSelect').disabled;
     $('expandAllBtn').disabled = !nodes.size;
     $('resetBtn').disabled = !nodes.size;
+    updateInterestBtn();
+    updateTraceBtns();
     renderFunctionList();
+}
+
+function matchesFunctionFilter(n) {
+    return functionFilter === 'all' ||
+        (functionFilter === 'interest' ? interest.has(n.id) : (n.type || 'custom') === functionFilter);
+}
+
+function matchesFunctionQuery(n, query) {
+    return !query || `${nameOf(n.id)} ${n.label} ${n.id}`.toLowerCase().includes(query);
+}
+
+function matchingFunctions(query = '') {
+    return [...nodes.values()].filter(n => matchesFunctionFilter(n) && matchesFunctionQuery(n, query))
+        .sort((a, b) => (a.id === rootId ? -1 : b.id === rootId ? 1 : nameOf(a.id).localeCompare(nameOf(b.id))));
 }
 
 function renderFunctionList() {
     const list = $('functionList');
     if (!list) return;
     const query = $('searchInput').value.trim().toLowerCase();
-    const matches = [...nodes.values()].filter(n =>
-        (functionFilter === 'all' || (functionFilter === 'interest' ? interest.has(n.id) : (n.type || 'custom') === functionFilter)) &&
-        (!query || `${nameOf(n.id)} ${n.label} ${n.id}`.toLowerCase().includes(query))
-    ).sort((a, b) => (a.id === rootId ? -1 : b.id === rootId ? 1 : nameOf(a.id).localeCompare(nameOf(b.id))));
+    const matches = matchingFunctions(query);
     list.replaceChildren();
     matches.forEach(n => {
         const button = document.createElement('button');
@@ -1159,7 +1278,7 @@ function renderFunctionList() {
     if (!matches.length) {
         const empty = document.createElement('p');
         empty.className = 'function-empty';
-        empty.textContent = nodes.size ? 'No matching functions. Try another name or filter.' : 'Import a graph to explore its functions.';
+        empty.textContent = nodes.size ? 'No matching functions. Try another name or filter.' : 'No functions are available.';
         list.appendChild(empty);
     }
     if ($('functionCount')) $('functionCount').textContent = matches.length;
@@ -1187,7 +1306,6 @@ document.querySelectorAll('[data-filter]').forEach(button => button.addEventList
     document.querySelectorAll('[data-filter]').forEach(b => b.setAttribute('aria-pressed', String(b === button)));
     renderFunctionList();
 }));
-$('importBtn')?.addEventListener('click', () => $('fileInput').click());
 $('fitBtn')?.addEventListener('click', fitGraph);
 for (const [id, factor] of [['zoomInBtn', 1.25], ['zoomOutBtn', 0.8]]) {
     $(id)?.addEventListener('click', () => {
@@ -1245,7 +1363,14 @@ if (window.innerWidth < 1100) {
     $('sidebarBtn').setAttribute('aria-expanded', 'false');
     $('sidebarBtn').setAttribute('aria-label', 'Show function inspector');
 }
-new ResizeObserver(() => { if (cy) cy.resize(); }).observe($('cy'));
+new ResizeObserver(() => {
+    if (!cy) return;
+    cy.resize();
+    if (trace.active && $('traceFollow').checked) {
+        const id = trace.stack.at(-1) || trace.events[trace.i]?.a || (trace.i === 0 ? trace.events[0]?.a : null);
+        if (id) followTraceNode(id);
+    }
+}).observe($('cy'));
 window.matchMedia('(min-width: 1100px)').addEventListener('change', event => {
     if (event.matches) {
         $('sidebar').removeAttribute('role');
