@@ -1,99 +1,465 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-04T11:12:33Z",
+  "generatedAt": "2026-10-04T12:04:33Z",
   "title": "Design System: reView Analysis Desk",
   "extensions": {
     "colorMeta": {
-      "background": { "role": "neutral", "displayName": "Charcoal Canvas", "canonical": "#111513", "tonalRamp": ["oklch(15% 0.008 155)", "oklch(25% 0.008 155)", "oklch(35% 0.008 155)", "oklch(45% 0.008 155)", "oklch(55% 0.008 155)", "oklch(65% 0.008 155)", "oklch(75% 0.008 155)", "oklch(95% 0.008 155)"] },
-      "surface-0": { "role": "neutral", "displayName": "Deep Work Surface", "canonical": "#141a17", "tonalRamp": ["oklch(15% 0.009 155)", "oklch(25% 0.009 155)", "oklch(35% 0.009 155)", "oklch(45% 0.009 155)", "oklch(55% 0.009 155)", "oklch(65% 0.009 155)", "oklch(75% 0.009 155)", "oklch(95% 0.009 155)"] },
-      "surface-1": { "role": "neutral", "displayName": "Panel Charcoal", "canonical": "#191f1c", "tonalRamp": ["oklch(15% 0.009 155)", "oklch(25% 0.009 155)", "oklch(35% 0.009 155)", "oklch(45% 0.009 155)", "oklch(55% 0.009 155)", "oklch(65% 0.009 155)", "oklch(75% 0.009 155)", "oklch(95% 0.009 155)"] },
-      "surface-2": { "role": "neutral", "displayName": "Raised Charcoal", "canonical": "#202723", "tonalRamp": ["oklch(15% 0.010 155)", "oklch(25% 0.010 155)", "oklch(35% 0.010 155)", "oklch(45% 0.010 155)", "oklch(55% 0.010 155)", "oklch(65% 0.010 155)", "oklch(75% 0.010 155)", "oklch(95% 0.010 155)"] },
-      "surface-raised": { "role": "neutral", "displayName": "Elevated Charcoal", "canonical": "#252d28", "tonalRamp": ["oklch(15% 0.011 155)", "oklch(25% 0.011 155)", "oklch(35% 0.011 155)", "oklch(45% 0.011 155)", "oklch(55% 0.011 155)", "oklch(65% 0.011 155)", "oklch(75% 0.011 155)", "oklch(95% 0.011 155)"] },
-      "border": { "role": "neutral", "displayName": "Soft Rule", "canonical": "#303a34", "tonalRamp": ["oklch(15% 0.014 155)", "oklch(25% 0.014 155)", "oklch(35% 0.014 155)", "oklch(45% 0.014 155)", "oklch(55% 0.014 155)", "oklch(65% 0.014 155)", "oklch(75% 0.014 155)", "oklch(95% 0.014 155)"] },
-      "border-soft": { "role": "neutral", "displayName": "Quiet Rule", "canonical": "#26302a", "tonalRamp": ["oklch(15% 0.012 155)", "oklch(25% 0.012 155)", "oklch(35% 0.012 155)", "oklch(45% 0.012 155)", "oklch(55% 0.012 155)", "oklch(65% 0.012 155)", "oklch(75% 0.012 155)", "oklch(95% 0.012 155)"] },
-      "text": { "role": "neutral", "displayName": "Primary Text", "canonical": "#e8eee9", "tonalRamp": ["oklch(15% 0.012 155)", "oklch(25% 0.012 155)", "oklch(35% 0.012 155)", "oklch(45% 0.012 155)", "oklch(55% 0.012 155)", "oklch(65% 0.012 155)", "oklch(75% 0.012 155)", "oklch(95% 0.012 155)"] },
-      "text-soft": { "role": "neutral", "displayName": "Soft Text", "canonical": "#c0cbc4", "tonalRamp": ["oklch(15% 0.014 155)", "oklch(25% 0.014 155)", "oklch(35% 0.014 155)", "oklch(45% 0.014 155)", "oklch(55% 0.014 155)", "oklch(65% 0.014 155)", "oklch(75% 0.014 155)", "oklch(95% 0.014 155)"] },
-      "text-muted": { "role": "neutral", "displayName": "Muted Text", "canonical": "#9aa89f", "tonalRamp": ["oklch(15% 0.014 155)", "oklch(25% 0.014 155)", "oklch(35% 0.014 155)", "oklch(45% 0.014 155)", "oklch(55% 0.014 155)", "oklch(65% 0.014 155)", "oklch(75% 0.014 155)", "oklch(95% 0.014 155)"] },
-      "text-faint": { "role": "neutral", "displayName": "Faint Text", "canonical": "#75847a", "tonalRamp": ["oklch(15% 0.014 155)", "oklch(25% 0.014 155)", "oklch(35% 0.014 155)", "oklch(45% 0.014 155)", "oklch(55% 0.014 155)", "oklch(65% 0.014 155)", "oklch(75% 0.014 155)", "oklch(95% 0.014 155)"] },
-      "accent": { "role": "primary", "displayName": "Execution Mint", "canonical": "#bdebd8", "tonalRamp": ["oklch(15% 0.047 159)", "oklch(25% 0.047 159)", "oklch(35% 0.047 159)", "oklch(45% 0.047 159)", "oklch(55% 0.047 159)", "oklch(65% 0.047 159)", "oklch(75% 0.047 159)", "oklch(95% 0.047 159)"] },
-      "accent-soft": { "role": "primary", "displayName": "Mint Well", "canonical": "#253e33", "tonalRamp": ["oklch(15% 0.020 159)", "oklch(25% 0.020 159)", "oklch(35% 0.020 159)", "oklch(45% 0.020 159)", "oklch(55% 0.020 159)", "oklch(65% 0.020 159)", "oklch(75% 0.020 159)", "oklch(95% 0.020 159)"] },
-      "accent-dim": { "role": "primary", "displayName": "Dim Mint", "canonical": "#7db69c", "tonalRamp": ["oklch(15% 0.045 159)", "oklch(25% 0.045 159)", "oklch(35% 0.045 159)", "oklch(45% 0.045 159)", "oklch(55% 0.045 159)", "oklch(65% 0.045 159)", "oklch(75% 0.045 159)", "oklch(95% 0.045 159)"] },
-      "node": { "role": "neutral", "displayName": "Function Node", "canonical": "#202a25", "tonalRamp": ["oklch(15% 0.012 155)", "oklch(25% 0.012 155)", "oklch(35% 0.012 155)", "oklch(45% 0.012 155)", "oklch(55% 0.012 155)", "oklch(65% 0.012 155)", "oklch(75% 0.012 155)", "oklch(95% 0.012 155)"] },
-      "edge": { "role": "neutral", "displayName": "Call Edge", "canonical": "#526158", "tonalRamp": ["oklch(15% 0.020 155)", "oklch(25% 0.020 155)", "oklch(35% 0.020 155)", "oklch(45% 0.020 155)", "oklch(55% 0.020 155)", "oklch(65% 0.020 155)", "oklch(75% 0.020 155)", "oklch(95% 0.020 155)"] },
-      "import": { "role": "secondary", "displayName": "Library Lavender", "canonical": "#c8b4df", "tonalRamp": ["oklch(15% 0.066 303)", "oklch(25% 0.066 303)", "oklch(35% 0.066 303)", "oklch(45% 0.066 303)", "oklch(55% 0.066 303)", "oklch(65% 0.066 303)", "oklch(75% 0.066 303)", "oklch(95% 0.066 303)"] },
-      "import-soft": { "role": "secondary", "displayName": "Lavender Well", "canonical": "#322b39", "tonalRamp": ["oklch(15% 0.025 303)", "oklch(25% 0.025 303)", "oklch(35% 0.025 303)", "oklch(45% 0.025 303)", "oklch(55% 0.025 303)", "oklch(65% 0.025 303)", "oklch(75% 0.025 303)", "oklch(95% 0.025 303)"] },
-      "risk": { "role": "tertiary", "displayName": "Interest Coral", "canonical": "#ef927e", "tonalRamp": ["oklch(15% 0.124 32)", "oklch(25% 0.124 32)", "oklch(35% 0.124 32)", "oklch(45% 0.124 32)", "oklch(55% 0.124 32)", "oklch(65% 0.124 32)", "oklch(75% 0.124 32)", "oklch(95% 0.124 32)"] },
-      "risk-soft": { "role": "tertiary", "displayName": "Coral Well", "canonical": "#422925", "tonalRamp": ["oklch(15% 0.045 32)", "oklch(25% 0.045 32)", "oklch(35% 0.045 32)", "oklch(45% 0.045 32)", "oklch(55% 0.045 32)", "oklch(65% 0.045 32)", "oklch(75% 0.045 32)", "oklch(95% 0.045 32)"] }
+      "background": {
+        "role": "neutral",
+        "displayName": "Charcoal Canvas",
+        "canonical": "#111513",
+        "tonalRamp": [
+          "oklch(15% 0.008 155)",
+          "oklch(25% 0.008 155)",
+          "oklch(35% 0.008 155)",
+          "oklch(45% 0.008 155)",
+          "oklch(55% 0.008 155)",
+          "oklch(65% 0.008 155)",
+          "oklch(75% 0.008 155)",
+          "oklch(95% 0.008 155)"
+        ]
+      },
+      "surface-0": {
+        "role": "neutral",
+        "displayName": "Deep Work Surface",
+        "canonical": "#141a17",
+        "tonalRamp": [
+          "oklch(15% 0.009 155)",
+          "oklch(25% 0.009 155)",
+          "oklch(35% 0.009 155)",
+          "oklch(45% 0.009 155)",
+          "oklch(55% 0.009 155)",
+          "oklch(65% 0.009 155)",
+          "oklch(75% 0.009 155)",
+          "oklch(95% 0.009 155)"
+        ]
+      },
+      "surface-1": {
+        "role": "neutral",
+        "displayName": "Panel Charcoal",
+        "canonical": "#191f1c",
+        "tonalRamp": [
+          "oklch(15% 0.009 155)",
+          "oklch(25% 0.009 155)",
+          "oklch(35% 0.009 155)",
+          "oklch(45% 0.009 155)",
+          "oklch(55% 0.009 155)",
+          "oklch(65% 0.009 155)",
+          "oklch(75% 0.009 155)",
+          "oklch(95% 0.009 155)"
+        ]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Raised Charcoal",
+        "canonical": "#202723",
+        "tonalRamp": [
+          "oklch(15% 0.010 155)",
+          "oklch(25% 0.010 155)",
+          "oklch(35% 0.010 155)",
+          "oklch(45% 0.010 155)",
+          "oklch(55% 0.010 155)",
+          "oklch(65% 0.010 155)",
+          "oklch(75% 0.010 155)",
+          "oklch(95% 0.010 155)"
+        ]
+      },
+      "surface-raised": {
+        "role": "neutral",
+        "displayName": "Elevated Charcoal",
+        "canonical": "#252d28",
+        "tonalRamp": [
+          "oklch(15% 0.011 155)",
+          "oklch(25% 0.011 155)",
+          "oklch(35% 0.011 155)",
+          "oklch(45% 0.011 155)",
+          "oklch(55% 0.011 155)",
+          "oklch(65% 0.011 155)",
+          "oklch(75% 0.011 155)",
+          "oklch(95% 0.011 155)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Soft Rule",
+        "canonical": "#303a34",
+        "tonalRamp": [
+          "oklch(15% 0.014 155)",
+          "oklch(25% 0.014 155)",
+          "oklch(35% 0.014 155)",
+          "oklch(45% 0.014 155)",
+          "oklch(55% 0.014 155)",
+          "oklch(65% 0.014 155)",
+          "oklch(75% 0.014 155)",
+          "oklch(95% 0.014 155)"
+        ]
+      },
+      "border-soft": {
+        "role": "neutral",
+        "displayName": "Quiet Rule",
+        "canonical": "#26302a",
+        "tonalRamp": [
+          "oklch(15% 0.012 155)",
+          "oklch(25% 0.012 155)",
+          "oklch(35% 0.012 155)",
+          "oklch(45% 0.012 155)",
+          "oklch(55% 0.012 155)",
+          "oklch(65% 0.012 155)",
+          "oklch(75% 0.012 155)",
+          "oklch(95% 0.012 155)"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Primary Text",
+        "canonical": "#e8eee9",
+        "tonalRamp": [
+          "oklch(15% 0.012 155)",
+          "oklch(25% 0.012 155)",
+          "oklch(35% 0.012 155)",
+          "oklch(45% 0.012 155)",
+          "oklch(55% 0.012 155)",
+          "oklch(65% 0.012 155)",
+          "oklch(75% 0.012 155)",
+          "oklch(95% 0.012 155)"
+        ]
+      },
+      "text-soft": {
+        "role": "neutral",
+        "displayName": "Soft Text",
+        "canonical": "#c0cbc4",
+        "tonalRamp": [
+          "oklch(15% 0.014 155)",
+          "oklch(25% 0.014 155)",
+          "oklch(35% 0.014 155)",
+          "oklch(45% 0.014 155)",
+          "oklch(55% 0.014 155)",
+          "oklch(65% 0.014 155)",
+          "oklch(75% 0.014 155)",
+          "oklch(95% 0.014 155)"
+        ]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Muted Text",
+        "canonical": "#9aa89f",
+        "tonalRamp": [
+          "oklch(15% 0.014 155)",
+          "oklch(25% 0.014 155)",
+          "oklch(35% 0.014 155)",
+          "oklch(45% 0.014 155)",
+          "oklch(55% 0.014 155)",
+          "oklch(65% 0.014 155)",
+          "oklch(75% 0.014 155)",
+          "oklch(95% 0.014 155)"
+        ]
+      },
+      "text-faint": {
+        "role": "neutral",
+        "displayName": "Faint Text",
+        "canonical": "#75847a",
+        "tonalRamp": [
+          "oklch(15% 0.014 155)",
+          "oklch(25% 0.014 155)",
+          "oklch(35% 0.014 155)",
+          "oklch(45% 0.014 155)",
+          "oklch(55% 0.014 155)",
+          "oklch(65% 0.014 155)",
+          "oklch(75% 0.014 155)",
+          "oklch(95% 0.014 155)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Execution Mint",
+        "canonical": "#bdebd8",
+        "tonalRamp": [
+          "oklch(15% 0.047 159)",
+          "oklch(25% 0.047 159)",
+          "oklch(35% 0.047 159)",
+          "oklch(45% 0.047 159)",
+          "oklch(55% 0.047 159)",
+          "oklch(65% 0.047 159)",
+          "oklch(75% 0.047 159)",
+          "oklch(95% 0.047 159)"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Mint Well",
+        "canonical": "#253e33",
+        "tonalRamp": [
+          "oklch(15% 0.020 159)",
+          "oklch(25% 0.020 159)",
+          "oklch(35% 0.020 159)",
+          "oklch(45% 0.020 159)",
+          "oklch(55% 0.020 159)",
+          "oklch(65% 0.020 159)",
+          "oklch(75% 0.020 159)",
+          "oklch(95% 0.020 159)"
+        ]
+      },
+      "accent-dim": {
+        "role": "primary",
+        "displayName": "Dim Mint",
+        "canonical": "#7db69c",
+        "tonalRamp": [
+          "oklch(15% 0.045 159)",
+          "oklch(25% 0.045 159)",
+          "oklch(35% 0.045 159)",
+          "oklch(45% 0.045 159)",
+          "oklch(55% 0.045 159)",
+          "oklch(65% 0.045 159)",
+          "oklch(75% 0.045 159)",
+          "oklch(95% 0.045 159)"
+        ]
+      },
+      "node": {
+        "role": "neutral",
+        "displayName": "Function Node",
+        "canonical": "#202a25",
+        "tonalRamp": [
+          "oklch(15% 0.012 155)",
+          "oklch(25% 0.012 155)",
+          "oklch(35% 0.012 155)",
+          "oklch(45% 0.012 155)",
+          "oklch(55% 0.012 155)",
+          "oklch(65% 0.012 155)",
+          "oklch(75% 0.012 155)",
+          "oklch(95% 0.012 155)"
+        ]
+      },
+      "edge": {
+        "role": "neutral",
+        "displayName": "Call Edge",
+        "canonical": "#526158",
+        "tonalRamp": [
+          "oklch(15% 0.020 155)",
+          "oklch(25% 0.020 155)",
+          "oklch(35% 0.020 155)",
+          "oklch(45% 0.020 155)",
+          "oklch(55% 0.020 155)",
+          "oklch(65% 0.020 155)",
+          "oklch(75% 0.020 155)",
+          "oklch(95% 0.020 155)"
+        ]
+      },
+      "import": {
+        "role": "secondary",
+        "displayName": "Library Lavender",
+        "canonical": "#c8b4df",
+        "tonalRamp": [
+          "oklch(15% 0.066 303)",
+          "oklch(25% 0.066 303)",
+          "oklch(35% 0.066 303)",
+          "oklch(45% 0.066 303)",
+          "oklch(55% 0.066 303)",
+          "oklch(65% 0.066 303)",
+          "oklch(75% 0.066 303)",
+          "oklch(95% 0.066 303)"
+        ]
+      },
+      "import-soft": {
+        "role": "secondary",
+        "displayName": "Lavender Well",
+        "canonical": "#322b39",
+        "tonalRamp": [
+          "oklch(15% 0.025 303)",
+          "oklch(25% 0.025 303)",
+          "oklch(35% 0.025 303)",
+          "oklch(45% 0.025 303)",
+          "oklch(55% 0.025 303)",
+          "oklch(65% 0.025 303)",
+          "oklch(75% 0.025 303)",
+          "oklch(95% 0.025 303)"
+        ]
+      },
+      "risk": {
+        "role": "tertiary",
+        "displayName": "Interest Coral",
+        "canonical": "#ef927e",
+        "tonalRamp": [
+          "oklch(15% 0.124 32)",
+          "oklch(25% 0.124 32)",
+          "oklch(35% 0.124 32)",
+          "oklch(45% 0.124 32)",
+          "oklch(55% 0.124 32)",
+          "oklch(65% 0.124 32)",
+          "oklch(75% 0.124 32)",
+          "oklch(95% 0.124 32)"
+        ]
+      },
+      "risk-soft": {
+        "role": "tertiary",
+        "displayName": "Coral Well",
+        "canonical": "#422925",
+        "tonalRamp": [
+          "oklch(15% 0.045 32)",
+          "oklch(25% 0.045 32)",
+          "oklch(35% 0.045 32)",
+          "oklch(45% 0.045 32)",
+          "oklch(55% 0.045 32)",
+          "oklch(65% 0.045 32)",
+          "oklch(75% 0.045 32)",
+          "oklch(95% 0.045 32)"
+        ]
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Workbench Heading", "purpose": "The main graph workspace heading." },
-      "title": { "displayName": "Brand and Section Title", "purpose": "The product wordmark and compact panel headings." },
-      "body": { "displayName": "Interface Copy", "purpose": "Explanations, inspector content, and ordinary controls." },
-      "label": { "displayName": "Compact Label", "purpose": "Counts, filters, status, and small control labels." },
-      "code": { "displayName": "Technical Mono", "purpose": "Addresses, function names, trace values, and decompiled output." }
+      "display": {
+        "displayName": "Inspector Welcome",
+        "purpose": "The inspector's first-use heading."
+      },
+      "title": {
+        "displayName": "Product Wordmark",
+        "purpose": "The brand title in the masthead."
+      },
+      "body": {
+        "displayName": "Interface Copy",
+        "purpose": "Dataset details, controls, filters, and status copy."
+      },
+      "reading": {
+        "displayName": "Inspector Reading",
+        "purpose": "Inspector explanations, summaries, and section content."
+      },
+      "label": {
+        "displayName": "Control Label",
+        "purpose": "Controls, filters, counts, and status labels."
+      },
+      "code": {
+        "displayName": "Technical Mono",
+        "purpose": "Addresses, function names, trace values, and decompiled output."
+      },
+      "identity": {
+        "displayName": "Editable Function Identity",
+        "purpose": "Large monospaced function identity in the inspector."
+      }
     },
     "shadows": [
-      { "name": "graph-overlay", "value": "0 3px 9px rgb(0 0 0 / 17%)", "purpose": "Graph legend and zoom controls." },
-      { "name": "graph-tooltip", "value": "0 7px 18px rgb(0 0 0 / 28%)", "purpose": "Hover detail over a graph node." },
-      { "name": "navigator-drawer", "value": "9px 14px 28px rgb(0 0 0 / 36%)", "purpose": "Narrow-screen function navigator." },
-      { "name": "inspector-drawer", "value": "0 16px 38px rgb(0 0 0 / 38%)", "purpose": "Narrow-screen function inspector." }
+      {
+        "name": "graph-overlay",
+        "value": "0 3px 9px rgb(0 0 0 / 17%)",
+        "purpose": "Graph legend and zoom controls."
+      },
+      {
+        "name": "graph-tooltip",
+        "value": "0 7px 18px rgb(0 0 0 / 28%)",
+        "purpose": "Hover detail over a graph node."
+      },
+      {
+        "name": "navigator-drawer",
+        "value": "9px 14px 28px rgb(0 0 0 / 36%)",
+        "purpose": "Narrow-screen function navigator."
+      },
+      {
+        "name": "inspector-drawer",
+        "value": "0 16px 38px rgb(0 0 0 / 38%)",
+        "purpose": "Narrow-screen function inspector."
+      }
     ],
     "motion": [
-      { "name": "ease-out", "value": "cubic-bezier(.16, 1, .3, 1)", "purpose": "Navigator drawer reveal." },
-      { "name": "control-transition", "value": "0.14s to 0.16s ease", "purpose": "Button, search, and list-row states." },
-      { "name": "canvas-sweep", "value": "1.35s with 0.18s delay", "purpose": "One-time subtle mint sweep over the empty graph canvas." },
-      { "name": "trace-signal", "value": "1.2s ease-out infinite", "purpose": "Shows that trace playback is active." },
-      { "name": "graph-movement", "value": "160ms node state, 250ms camera, 400ms layout", "purpose": "Keeps graph expansion and inspection spatially legible." },
-      { "name": "reduced-motion", "value": "CSS animations and transitions reduced to 0.01ms; graph navigation and layout helper movement set to 0ms; trace-token movement set to 1ms", "purpose": "Respects the user's reduced-motion preference." }
+      {
+        "name": "ease-out",
+        "value": "0.25s cubic-bezier(.16, 1, .3, 1)",
+        "purpose": "Navigator drawer reveal."
+      },
+      {
+        "name": "control-transition",
+        "value": "0.14s to 0.16s ease",
+        "purpose": "Button, search, and list-row states."
+      },
+      {
+        "name": "canvas-sweep",
+        "value": "1.35s with 0.18s delay",
+        "purpose": "One-time subtle mint sweep over the graph canvas."
+      },
+      {
+        "name": "trace-signal",
+        "value": "1.2s ease-out infinite",
+        "purpose": "Shows that trace playback is active."
+      },
+      {
+        "name": "graph-movement",
+        "value": "160ms node state, 250ms camera, layout snaps without animation",
+        "purpose": "Keeps graph positions stable during expansion and trace inspection."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "CSS animations and transitions reduced to 0.01ms; camera helper movement set to 0ms; trace-token movement set to 1ms",
+        "purpose": "Respects the user's reduced-motion preference."
+      }
     ],
     "breakpoints": [
-      { "name": "wide-narrowing", "value": "1220px" },
-      { "name": "inspector-narrowing", "value": "1080px" },
-      { "name": "drawer-workspace", "value": "1100px" },
-      { "name": "compact-touch", "value": "680px" },
-      { "name": "micro-compact", "value": "390px" }
+      {
+        "name": "wide-narrowing",
+        "value": "1220px"
+      },
+      {
+        "name": "drawer-workspace",
+        "value": "1100px"
+      },
+      {
+        "name": "compact-touch",
+        "value": "680px"
+      },
+      {
+        "name": "graph-orientation",
+        "value": "600px"
+      },
+      {
+        "name": "micro-compact",
+        "value": "390px"
+      }
     ]
   },
   "components": [
     {
-      "name": "Import Button",
+      "name": "Trace Launch Button",
       "kind": "button",
-      "refersTo": "button-import",
-      "description": "Primary action for loading a graph file.",
-      "html": "<button class=\"ds-import\" type=\"button\"><svg viewBox=\"0 0 20 20\" aria-hidden=\"true\"><path d=\"M10 3.5v8m0 0 3-3m-3 3-3-3M4 13.5v2A1.5 1.5 0 0 0 5.5 17h9a1.5 1.5 0 0 0 1.5-1.5v-2\"/></svg><span>Import graph</span></button>",
-      "css": ".ds-import { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; gap: 8px; padding: 0 13px; border: 1px solid var(--color-accent); border-radius: 7px; background: var(--color-accent); color: var(--surface-1); font: 700 12px/1.2 var(--font-sans); cursor: pointer; transition: border-color .16s ease, color .16s ease; } .ds-import svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; } .ds-import:hover { border-color: var(--color-text); } .ds-import:focus-visible { outline: 2px solid var(--color-accent-dim); outline-offset: 2px; } .ds-import:active { transform: translateY(1px); } .ds-import:disabled { cursor: not-allowed; opacity: .48; }"
+      "refersTo": "button-trace",
+      "description": "Mint-filled primary action for starting trace playback.",
+      "html": "<button class=\"ds-trace\" type=\"button\"><span>Trace</span></button>",
+      "css": ".ds-trace { display: inline-flex; min-width: 88px; min-height: 44px; align-items: center; justify-content: center; gap: 6px; padding: 0 13px; border: 1px solid var(--color-accent); border-radius: 5px; background: var(--color-accent); color: var(--surface-1); font: 700 13px/1.2 var(--font-sans); cursor: pointer; transition: background .15s ease, transform .15s ease; } .ds-trace:active { transform: translateY(1px); } .ds-trace:focus-visible { outline: 2px solid var(--color-accent-dim); outline-offset: 2px; } .ds-trace:disabled { cursor: not-allowed; opacity: .48; }"
     },
     {
-      "name": "Quiet Inspector Toggle",
+      "name": "Graph Action Button",
+      "kind": "button",
+      "refersTo": "button-toolbar",
+      "description": "Quiet surface button in the graph toolbar.",
+      "html": "<button class=\"ds-tool\" type=\"button\">Show all</button>",
+      "css": ".ds-tool { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; padding: 0 13px; border: 1px solid var(--color-border); border-radius: 5px; background: var(--surface-1); color: var(--text-soft); font: 650 13px/1.2 var(--font-sans); cursor: pointer; transition: border-color .14s ease, background .14s ease, color .14s ease; } .ds-tool:hover { border-color: var(--color-edge); background: var(--color-border-soft); color: var(--color-text); } .ds-tool:focus-visible { outline: 2px solid var(--color-accent-dim); outline-offset: 2px; } .ds-tool:disabled { cursor: not-allowed; opacity: .48; }"
+    },
+    {
+      "name": "Inspector Toggle",
       "kind": "button",
       "refersTo": "button-quiet",
-      "description": "Secondary header action for showing the function inspector.",
-      "html": "<button class=\"ds-quiet\" type=\"button\"><span aria-hidden=\"true\">Inspector</span></button>",
-      "css": ".ds-quiet { display: inline-flex; min-height: 38px; align-items: center; justify-content: center; padding: 0 13px; border: 1px solid var(--color-border); border-radius: 7px; background: var(--surface-1); color: var(--text-soft); font: 600 12px/1.2 var(--font-sans); cursor: pointer; transition: background .16s ease, border-color .16s ease, color .16s ease; } .ds-quiet:hover { border-color: var(--color-edge); background: var(--color-node); color: var(--color-text); } .ds-quiet:focus-visible { outline: 2px solid var(--color-accent-dim); outline-offset: 2px; } .ds-quiet:active { background: var(--color-border-soft); } .ds-quiet:disabled { cursor: not-allowed; opacity: .48; }"
+      "description": "Right-aligned canvas-toolbar toggle with a panel glyph; its text label is hidden at 680px and below.",
+      "html": "<button class=\"ds-inspector\" type=\"button\" aria-label=\"Hide function inspector\" aria-controls=\"sidebar\" aria-expanded=\"true\"><svg viewBox=\"0 0 20 20\" fill=\"none\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"14\" height=\"14\" rx=\"2\" stroke=\"currentColor\" stroke-width=\"1.5\"/><path d=\"M12 3v14\" stroke=\"currentColor\" stroke-width=\"1.5\"/></svg><span class=\"ds-inspector-label\">Inspector</span></button>",
+      "css": ".ds-inspector { display: inline-flex; min-width: 44px; min-height: 44px; align-items: center; justify-content: center; gap: 9px; padding: 0 13px; border: 1px solid var(--color-border); border-radius: 7px; background: var(--surface-1); color: var(--text-soft); font: 650 13px/1.2 var(--font-sans); white-space: nowrap; cursor: pointer; transition: background .16s ease, border-color .16s ease, color .16s ease; } .ds-inspector svg { width: 18px; height: 18px; } .ds-inspector:hover { background: var(--color-node); border-color: var(--color-edge); color: var(--color-text); } .ds-inspector:focus-visible { outline: 2px solid var(--color-accent-dim); outline-offset: 2px; } @media (max-width: 680px) { .ds-inspector { width: 44px; padding: 0; } .ds-inspector-label { display: none; } }"
     },
     {
       "name": "Function Search",
       "kind": "input",
       "refersTo": "input-search",
-      "description": "Search field at the top of the function navigator.",
+      "description": "Full-width search field at the top of the function navigator.",
       "html": "<label class=\"ds-search\"><span class=\"ds-search-label\">Find a function</span><input type=\"search\" placeholder=\"Find a function\" aria-label=\"Search functions\"></label>",
-      "css": ".ds-search { display: flex; height: 36px; align-items: center; gap: 8px; padding: 0 9px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-background); color: var(--text-muted); transition: border-color .15s ease, background .15s ease; } .ds-search-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .ds-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: 400 13px/1.45 var(--font-sans); } .ds-search input::placeholder { color: var(--text-muted); opacity: 1; } .ds-search:focus-within { border-color: var(--text-faint); background: var(--surface-0); } .ds-search input:disabled { cursor: not-allowed; opacity: .48; }"
+      "css": ".ds-search { display: flex; height: 44px; align-items: center; gap: 9px; padding: 0 11px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-background); color: var(--text-muted); transition: border-color .15s ease, background .15s ease; } .ds-search-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } .ds-search input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--color-text); font: 400 14px/1.45 var(--font-sans); } .ds-search input::placeholder { color: var(--text-muted); opacity: 1; } .ds-search:focus-within { border-color: var(--text-faint); background: var(--surface-0); } .ds-search input:disabled { cursor: not-allowed; opacity: .48; }"
     },
     {
       "name": "Function Navigator Row",
       "kind": "nav",
       "refersTo": "function-row",
-      "description": "Monospaced function entry in the searchable graph navigator.",
-      "html": "<button class=\"ds-function\" type=\"button\"><span class=\"ds-mark\" aria-hidden=\"true\"></span><span>validate_input</span></button>",
-      "css": ".ds-function { display: flex; width: 100%; min-height: 36px; align-items: center; gap: 9px; padding: 6px 9px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: var(--text-soft); text-align: left; font: 400 12px/1.3 var(--font-mono); cursor: pointer; transition: background .14s ease, border-color .14s ease, color .14s ease; } .ds-function:hover { border-color: var(--color-border); background: var(--surface-2); color: var(--color-text); } .ds-function[aria-current=\"true\"] { border-color: var(--color-edge); background: var(--color-border-soft); color: var(--color-text); } .ds-mark { width: 7px; height: 7px; flex: 0 0 7px; border: 1px solid var(--color-accent-dim); border-radius: 2px; background: var(--color-edge); } .ds-function:focus-visible { outline: 2px solid var(--color-accent-dim); outline-offset: 2px; } .ds-function:active { background: var(--color-border-soft); } .ds-function:disabled { cursor: not-allowed; opacity: .48; }"
+      "description": "Monospaced, searchable function row with a semantic type mark and optional interest dot.",
+      "html": "<button class=\"ds-function\" type=\"button\" aria-current=\"true\"><span class=\"ds-mark\" aria-hidden=\"true\">ƒ</span><span class=\"ds-label\">validate_input</span></button>",
+      "css": ".ds-function { position: relative; display: flex; width: 100%; min-height: 40px; align-items: center; gap: 10px; padding: 7px 10px; overflow: hidden; border: 1px solid transparent; border-radius: 5px; background: transparent; color: var(--text-soft); text-align: left; cursor: pointer; transition: background .14s ease, border-color .14s ease, color .14s ease; } .ds-label { min-width: 0; overflow: hidden; color: inherit; font: 400 12px/1.45 var(--font-mono); text-overflow: ellipsis; white-space: nowrap; } .ds-mark { color: var(--color-accent-dim); } .ds-function:hover { border-color: var(--color-border); background: var(--surface-2); color: var(--color-text); } .ds-function[aria-current=\"true\"] { border-color: var(--color-edge); background: var(--color-border-soft); color: var(--color-text); } .ds-function:focus-visible { outline: 2px solid var(--color-accent-dim); outline-offset: 2px; }"
     },
     {
       "name": "Inspector Section",
       "kind": "card",
       "refersTo": "inspector-section",
-      "description": "Expandable detail region for a summary, connections, or code.",
+      "description": "Expandable summary, connection, path, or code region in the inspector.",
       "html": "<details class=\"ds-section\" open><summary>Function summary</summary><div class=\"ds-section-body\">Follows the actual function data.</div></details>",
-      "css": ".ds-section { overflow: hidden; border: 1px solid var(--color-border); border-radius: 7px; background: var(--surface-1); color: var(--text-soft); } .ds-section summary { display: flex; min-height: 37px; align-items: center; justify-content: space-between; padding: 0 11px; color: var(--text-soft); font: 650 12px/1.3 var(--font-sans); cursor: pointer; } .ds-section summary:hover { color: var(--color-text); } .ds-section summary:focus-visible { outline: 2px solid var(--color-accent-dim); outline-offset: -2px; } .ds-section-body { padding: 0 11px 11px; color: var(--text-soft); font: 400 12px/1.55 var(--font-sans); }"
+      "css": ".ds-section { overflow: hidden; border: 1px solid var(--color-border); border-radius: 7px; background: var(--surface-1); color: var(--text-soft); } .ds-section summary { display: flex; min-height: 44px; align-items: center; justify-content: space-between; gap: 8px; padding: 0 12px; color: var(--text-soft); font: 650 15px/1.3 var(--font-sans); cursor: pointer; list-style: none; } .ds-section summary:hover { color: var(--color-text); } .ds-section summary:focus-visible { outline: 2px solid var(--color-accent-dim); outline-offset: -2px; } .ds-section-body { padding: 0 12px 13px; color: var(--text-soft); font: 400 14px/1.6 var(--font-sans); }"
     },
     {
       "name": "Connection Chip",
@@ -101,17 +467,43 @@
       "refersTo": "connection-chip",
       "description": "Compact monospaced link to a caller or callee.",
       "html": "<span class=\"ds-connection\">parse_record</span>",
-      "css": ".ds-connection { display: inline-block; max-width: 100%; padding: 4px 6px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-node); color: var(--color-accent); font: 400 11px/1.35 var(--font-mono); overflow-wrap: anywhere; }"
+      "css": ".ds-connection { display: inline-block; max-width: 100%; padding: 5px 7px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-node); color: var(--color-accent); font: 400 12px/1.5 var(--font-mono); overflow-wrap: anywhere; }"
+    },
+    {
+      "name": "Graph Canvas",
+      "kind": "custom",
+      "refersTo": "graph-canvas",
+      "description": "Graph surface with a full-canvas forest-to-plum wash and repeating dot grid.",
+      "html": "<div class=\"ds-canvas\" aria-hidden=\"true\"></div>",
+      "css": ".ds-canvas { width: 100%; min-height: 180px; background-color: #111513; background-image: linear-gradient(135deg, rgb(46 78 61 / 42%) 0%, rgb(17 21 19 / 8%) 48%, rgb(55 42 67 / 36%) 100%), radial-gradient(circle, rgb(133 153 140 / 24%) .8px, transparent 1px); background-position: center, 0 0; background-repeat: no-repeat, repeat; background-size: 100% 100%, 24px 24px; }"
     }
   ],
   "narrative": {
     "northStar": "The Precision Analysis Desk",
-    "overview": "The interface is a focused tool for following a binary's real structure. The call graph owns the center; the function navigator and inspector keep search, context, and decompiled output close at hand. Charcoal surfaces make dense labels readable while color carries graph meaning.\n\nUse thin dividers and restrained shadows to separate working regions. Mint marks entry points and active execution, lavender marks imported libraries, and coral marks functions worth inspection. The viewer's runtime palette stays in viewer/styles.css because the backend ships that file with index.html and app.js; tokens.css is a portable reference export only.\n\nDesktop graph nodes measure 176 by 48 pixels with 12-pixel labels. Below 600 pixels they measure 132 by 48 pixels, use a 20-pixel layout padding value, and switch to a top-to-bottom graph. Trace playback hides the graph legend and centers the followed node while retaining a minimum zoom of 1.0 on desktop and 0.85 on narrow screens. Below 1100 pixels, navigator and inspector drawers use dialog semantics and contain keyboard focus until closed.",
-    "keyCharacteristics": ["Graph-first, three-region workbench", "Tinted charcoal surfaces with fine rules", "Color distinguishes entry, import, and interest states"],
-    "rules": [
-      { "name": "The State-Color Rule", "body": "Keep each graph state legible through its assigned accent: mint for entry and execution, lavender for imports, coral for interest.", "section": "colors" }
+    "overview": "The interface is a focused tool for following a binary's real structure. The call graph owns the center; the function navigator and inspector keep search, context, and decompiled output close at hand. A brand masthead and separate dataset strip sit above the workbench. Graph actions stay at the left of the canvas toolbar, with the inspector toggle at its right edge. The visible “Call graph” heading is screenreader-only.\n\nUse thin dividers and restrained shadows to separate working regions. Mint marks entry points and active execution, lavender marks imported libraries, and coral marks functions worth inspection. The graph canvas carries a translucent forest-to-plum wash over its dotted field. The viewer's runtime palette stays in `viewer/styles.css` because the backend ships that file with `index.html` and `app.js`; `tokens.css` is a portable reference export only.",
+    "keyCharacteristics": [
+      "Graph-first, three-region workbench",
+      "Tinted charcoal surfaces with fine rules",
+      "Color distinguishes entry, import, and interest states"
     ],
-    "dos": ["Do preserve the mint, lavender, and coral meaning across graph nodes, navigator markers, and trace states.", "Do use fine borders and nearby surface tones to separate work areas.", "Do keep technical values and decompiled code in Martian Mono.", "Do retain the compact desktop columns and switch them to drawers at 1100px.", "Do honor reduced-motion preferences for CSS and graph animation."],
-    "donts": ["Don't make entry, import, execution, and interest states share one accent color.", "Don't replace the flexible graph canvas with a fixed-width content panel.", "Don't introduce heavy shadows to the resting workbench panels."]
+    "rules": [
+      {
+        "name": "The State-Color Rule",
+        "body": "Keep each graph state legible through its assigned accent: mint for entry and execution, lavender for imports, coral for interest.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do preserve the mint, lavender, and coral meaning across graph nodes, navigator markers, and trace states.",
+      "Do use fine borders and nearby surface tones to separate work areas.",
+      "Do keep technical values and decompiled code in Martian Mono.",
+      "Do retain the compact desktop columns and switch them to drawers at 1100px.",
+      "Do honor reduced-motion preferences for CSS and graph animation."
+    ],
+    "donts": [
+      "Don't make entry, import, execution, and interest states share one accent color.",
+      "Don't replace the flexible graph canvas with a fixed-width content panel.",
+      "Don't introduce heavy shadows to the resting workbench panels."
+    ]
   }
 }
