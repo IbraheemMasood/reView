@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>reView – Reverse Engineering for Beginners</title>
+    <title>reView – x-ray vision for binaries</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@300..800&family=Martian+Mono:wght@100..800&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
           rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -14,9 +14,10 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['"Host Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-                        mono: ['"Martian Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
-                    }
+                        sans: ['"Space Grotesk"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+                    },
+                    colors: { ink: { 950: '#04050b', 900: '#080a14', 850: '#0b0e1b', 800: '#10142a', 700: '#1a1f3d' } }
                 }
             }
         };
@@ -25,263 +26,366 @@
     <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/cytoscape-dagre@2.5.0/cytoscape-dagre.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-c.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
     <link href="styles.css" rel="stylesheet">
 </head>
-<body class="h-full flex flex-col font-sans overflow-hidden">
+<body class="h-full flex flex-col font-sans overflow-hidden bg-ink-950 text-slate-100 antialiased">
+
+<!-- ================= boot splash ================= -->
+<div id="splash" role="status" aria-label="Loading reView">
+    <div class="splash-grid"></div>
+    <div class="splash-core">
+        <svg class="splash-logo" viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+                <linearGradient id="lg-splash" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#22d3ee"/>
+                    <stop offset=".55" stop-color="#a78bfa"/>
+                    <stop offset="1" stop-color="#f472b6"/>
+                </linearGradient>
+                <radialGradient id="rg-pupil">
+                    <stop offset="0" stop-color="#fff"/>
+                    <stop offset=".35" stop-color="#67e8f9"/>
+                    <stop offset="1" stop-color="#7c3aed"/>
+                </radialGradient>
+            </defs>
+            <polygon class="lg-hex" points="60,6 107,33 107,87 60,114 13,87 13,33" fill="none" stroke="url(#lg-splash)" stroke-width="2.5"/>
+            <path class="lg-eye" d="M22 60 Q60 22 98 60 Q60 98 22 60 Z" fill="none" stroke="url(#lg-splash)" stroke-width="3" stroke-linejoin="round"/>
+            <circle class="lg-pupil" cx="60" cy="60" r="12" fill="url(#rg-pupil)"/>
+            <line class="lg-scan" x1="18" x2="102" y1="60" y2="60" stroke="#67e8f9" stroke-width="1.5"/>
+        </svg>
+        <h1 class="splash-word"><span>r</span><span>e</span><span class="grad">V</span><span class="grad">i</span><span class="grad">e</span><span class="grad">w</span></h1>
+        <p class="splash-tag">x-ray vision for compiled binaries</p>
+        <div class="splash-term">
+            <div id="bootLog" class="font-mono"></div>
+            <div class="splash-bar"><div id="bootBar"></div></div>
+        </div>
+        <p class="splash-skip">press any key to skip</p>
+    </div>
+</div>
 
 <!-- Hidden file input to prevent app.js null errors -->
 <input id="fileInput" type="file" accept=".json,application/json" class="hidden">
 
-<header class="h-16 shrink-0 border-b border-slate-800 bg-slate-900/80 px-5 flex items-center justify-between">
-    <!-- Left Group: Branding + Action Buttons -->
-    <div class="flex items-center space-x-4">
-        <!-- Branding -->
-        <div class="flex items-center space-x-3 pr-2 border-r border-slate-800">
-            <h1 class="text-base font-bold tracking-wide text-white">reView</h1>
-            <span class="text-xs bg-slate-800 text-slate-400 px-2.5 py-0.5 rounded font-mono border border-slate-700">RE for beginners</span>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex items-center space-x-2">
-            <button id="interestBtn" title="Toggle red highlighting of functions worth a closer look" class="btn text-sm">🔴
-                Interest: on
-            </button>
-            <button id="expandAllBtn" class="btn text-sm">Show all</button>
-            <button id="resetBtn" class="btn text-sm">Reset</button>
-        </div>
-
-        <!-- Trace controls -->
-        <div id="traceBar" class="flex items-center space-x-2 pl-3 border-l border-slate-800">
-            <select id="traceSelect" title="Which trace to play"
-                    class="w-64 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:border-cyan-500"></select>
-            <div id="liveBar" class="hidden flex items-center space-x-2 pl-2 border-l border-slate-800">
-                <select id="liveMode" title="How the input is given to the program"
-                        class="bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-sm">
-                    <option value="args">args</option>
-                    <option value="stdin">stdin</option>
-                </select>
-                <input id="liveInput" placeholder="e.g. AREV3RSZ" spellcheck="false" maxlength="256"
-                       class="w-64 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:border-cyan-500">
-            </div>
-            <button id="traceBtn" title="Animate a run of the program through the call graph"
-                    class="btn btn-primary text-sm">▶ Trace
-            </button>
+<!-- ================= top bar ================= -->
+<header id="topbar" class="relative z-30 h-16 shrink-0 px-4 flex items-center gap-4">
+    <div class="flex items-center gap-3 shrink-0">
+        <svg class="brand-mark" viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+                <linearGradient id="lg-brand" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#22d3ee"/>
+                    <stop offset=".55" stop-color="#a78bfa"/>
+                    <stop offset="1" stop-color="#f472b6"/>
+                </linearGradient>
+            </defs>
+            <polygon points="60,6 107,33 107,87 60,114 13,87 13,33" fill="rgba(124,58,237,.12)" stroke="url(#lg-brand)" stroke-width="6"/>
+            <path d="M24 60 Q60 26 96 60 Q60 94 24 60 Z" fill="none" stroke="url(#lg-brand)" stroke-width="7" stroke-linejoin="round"/>
+            <circle class="brand-pupil" cx="60" cy="60" r="12" fill="#67e8f9"/>
+        </svg>
+        <div class="leading-none">
+            <div class="text-[19px] font-bold tracking-tight">re<span class="text-grad">View</span></div>
+            <div class="text-[10px] uppercase tracking-[.22em] text-slate-500 mt-1">binary x-ray</div>
         </div>
     </div>
 
+    <div id="stats" class="stats items-center gap-1.5 pl-4 ml-1 border-l border-white/5">
+        <span class="stat-pill" title="Functions in the binary"><i data-icon="braces"></i><b id="statFns">0</b> functions</span>
+        <span class="stat-pill" title="Call relationships"><i data-icon="fork"></i><b id="statCalls">0</b> calls</span>
+        <span class="stat-pill" title="Library imports"><i data-icon="package"></i><b id="statImports">0</b> imports</span>
+        <span class="stat-pill stat-hot" title="Functions worth a closer look"><i data-icon="flag"></i><b id="statFlagged">0</b> flagged</span>
+    </div>
 
-    <div id="searchContainer" class="flex items-center">
-        <input id="searchInput" type="text" placeholder="Search a function, press Enter…"
-               class="w-72 bg-slate-950 border border-slate-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-indigo-500">
+    <div class="flex-1"></div>
+
+    <button id="paletteBtn" class="search-trigger" title="Search functions (Ctrl+K)">
+        <i data-icon="search"></i>
+        <span class="flex-1 text-left">Search functions…</span>
+        <kbd class="kbd">Ctrl</kbd><kbd class="kbd">K</kbd>
+    </button>
+
+    <div id="traceBar" class="flex items-center gap-2 pl-4 border-l border-white/5">
+        <div class="select-wrap">
+            <select id="traceSelect" title="Which trace to play" class="field w-52 font-mono text-[13px]"></select>
+        </div>
+        <div id="liveBar" class="hidden flex items-center gap-2">
+            <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+            <div class="select-wrap">
+                <select id="liveMode" title="How the input is given to the program" class="field w-[92px] text-[13px]">
+                    <option value="args">args</option>
+                    <option value="stdin">stdin</option>
+                </select>
+            </div>
+            <input id="liveInput" placeholder="e.g. AREV3RSZ" spellcheck="false" maxlength="256" autocomplete="off"
+                   class="field w-56 font-mono text-[13px]">
+        </div>
+        <button id="traceBtn" title="Animate a run of the program through the call graph" class="btn btn-primary">
+            <i data-icon="play"></i><span>Run trace</span>
+        </button>
     </div>
 </header>
 
 <div class="flex-1 flex relative overflow-hidden">
-
-    <!-- Left Column: Graph + Trace Panel (Expands dynamically when sidebar closes) -->
     <div class="flex-1 flex flex-col min-w-0">
-        <div class="flex-1 relative bg-slate-950">
-
+        <!-- ================= graph stage ================= -->
+        <div id="stage" class="flex-1 relative overflow-hidden">
+            <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+            <canvas id="bgCanvas" class="absolute inset-0 pointer-events-none" aria-hidden="true"></canvas>
+            <canvas id="glowCanvas" class="absolute inset-0 pointer-events-none" aria-hidden="true"></canvas>
             <div id="cy" class="absolute inset-0"></div>
-            <div id="tip"
-                 class="hidden absolute z-20 pointer-events-none max-w-xs bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm shadow-xl"></div>
+            <canvas id="fxCanvas" class="absolute inset-0 pointer-events-none" aria-hidden="true"></canvas>
+            <div class="vignette" aria-hidden="true"></div>
 
-            <details
-                    class="absolute left-3 bottom-3 bg-slate-900/90 border border-slate-800 rounded-lg px-3.5 py-2.5 text-sm font-mono"
-            >
-                <summary class="font-semibold text-slate-300 py-1 cursor-pointer">Legend</summary>
-                <div class="space-y-2 mt-2">
-                    <div class="flex items-center space-x-2"><span
-                            class="h-3 w-3 rounded-sm bg-emerald-700 border border-emerald-400"></span><span>entry point</span>
-                    </div>
-                    <div class="flex items-center space-x-2"><span
-                            class="h-3 w-3 rounded-sm bg-slate-700 border border-slate-400"></span><span>program's own code</span>
-                    </div>
-                    <div class="flex items-center space-x-2"><span
-                            class="h-3 w-3 rounded-sm bg-blue-900 border border-blue-400"></span><span>library import</span>
-                    </div>
-                    <div class="flex items-center space-x-2"><span
-                            class="h-3 w-3 rounded-sm bg-amber-900 border border-amber-400"></span><span>path from main</span>
-                    </div>
-                    <div class="flex items-center space-x-2"><span
-                            class="h-3 w-3 rounded-sm bg-slate-600 border-2 border-white"></span><span>selected</span>
-                    </div>
-                    <div class="flex items-center space-x-2"><span
-                            class="h-3 w-3 rounded-sm bg-slate-800 border border-red-500 shadow-[0_0_6px_1px_rgba(239,68,68,0.8)]"></span><span>of interest</span>
-                    </div>
-                    <div class="text-slate-500 pt-1 text-xs">arrow = "calls"</div>
+            <div id="tip" class="hidden"></div>
+
+            <div id="resultBanner" class="hidden" role="status">
+                <div class="rb-inner">
+                    <div id="rbIcon" class="rb-icon"></div>
+                    <div id="rbTitle" class="rb-title"></div>
+                    <div id="rbSub" class="rb-sub"></div>
+                </div>
+            </div>
+
+            <!-- legend -->
+            <details id="legend" class="legend glass">
+                <summary><i data-icon="info"></i><span>Legend</span></summary>
+                <div class="legend-body">
+                    <div class="lg-row"><span class="sw sw-entry"></span>entry point</div>
+                    <div class="lg-row"><span class="sw sw-custom"></span>program's own code</div>
+                    <div class="lg-row"><span class="sw sw-import"></span>library import</div>
+                    <div class="lg-row"><span class="sw sw-path"></span>path from main</div>
+                    <div class="lg-row"><span class="sw sw-sel"></span>selected</div>
+                    <div class="lg-row"><span class="sw sw-hot"></span>of interest</div>
+                    <div class="lg-row"><span class="sw sw-trace"></span>traced call</div>
+                    <div class="text-slate-500 pt-1 text-[11px]">arrows point from caller to callee</div>
                 </div>
             </details>
 
-            <div id="loadMsg" class="hidden absolute inset-0 flex items-center justify-center bg-slate-950/95 z-10">
-                <div class="max-w-md text-center space-y-3 p-6">
+            <!-- floating dock -->
+            <div id="dock" class="dock glass">
+                <button id="interestBtn" class="dock-btn on" title="Toggle red highlighting of functions worth a closer look (I)">
+                    <span class="toggle-pip"></span><span>Interest</span>
+                </button>
+                <button id="expandAllBtn" class="dock-btn" title="Show every function"><i data-icon="layers"></i><span>Show all</span></button>
+                <button id="resetBtn" class="dock-btn" title="Back to main"><i data-icon="home"></i><span>Reset</span></button>
+                <span class="dock-sep"></span>
+                <button id="zoomOutBtn" class="dock-btn icon" title="Zoom out" aria-label="Zoom out"><i data-icon="minus"></i></button>
+                <button id="fitBtn" class="dock-btn icon" title="Fit graph (F)" aria-label="Fit graph"><i data-icon="scan"></i></button>
+                <button id="zoomInBtn" class="dock-btn icon" title="Zoom in" aria-label="Zoom in"><i data-icon="plus"></i></button>
+                <span class="dock-sep"></span>
+                <button id="helpBtn" class="dock-btn icon" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts"><i data-icon="keyboard"></i></button>
+            </div>
+
+            <div id="loadMsg" class="hidden absolute inset-0 z-20 flex items-center justify-center bg-ink-950/90 backdrop-blur">
+                <div class="err-card glass">
+                    <div class="err-icon"><i data-icon="alert"></i></div>
                     <h2 class="text-lg font-bold">Couldn't load graph.json</h2>
-                    <p id="loadErr" class="text-sm font-mono text-rose-400"></p>
-                    <p class="text-sm text-slate-400">Browsers block <span class="font-mono">fetch()</span> on files
-                        opened directly. Serve this folder with
-                        <span class="font-mono text-slate-200">python3 -m http.server</span>.</p>
+                    <p id="loadErr" class="text-sm font-mono text-rose-300 break-words"></p>
+                    <p class="text-sm text-slate-400">Browsers block <span class="font-mono text-slate-300">fetch()</span> on
+                        files opened directly. Serve this folder with
+                        <span class="font-mono text-cyan-300">python3 -m http.server</span>.</p>
                 </div>
             </div>
         </div>
 
-        <section id="tracePanel" class="hidden shrink-0 h-80 border-t border-slate-800 bg-slate-900 flex flex-col text-sm">
-            <!-- Slim control strip: the step-by-step log below is the main event -->
-            <div class="shrink-0 flex items-center gap-2 px-3.5 py-2 border-b border-slate-800 bg-slate-950/40">
-                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mr-1">Execution Trace</h3>
-                <button id="tracePlay" class="btn btn-sm">▶ Play</button>
-                <button id="traceStep" class="btn btn-sm">Step ▸</button>
-                <button id="traceReset" class="btn btn-sm">Reset</button>
-                <select id="traceSpeed" class="bg-slate-950 border border-slate-800 rounded-md px-2 py-1.5 text-sm">
-                    <option value="slow">Slow</option>
-                    <option value="normal" selected>Normal</option>
-                    <option value="fast">Fast</option>
-                </select>
-                <label class="flex items-center gap-1.5 text-slate-400 text-xs ml-2">
-                    <input id="traceFollow" type="checkbox" checked> Follow active node
+        <!-- ================= trace panel ================= -->
+        <section id="tracePanel" class="hidden shrink-0 h-[340px] flex flex-col text-sm">
+            <div class="trace-head">
+                <span id="traceDot" class="trace-dot"></span>
+                <h3 class="trace-title">Execution trace</h3>
+                <span id="traceLabel" class="trace-label font-mono"></span>
+                <div class="flex items-center gap-1.5 ml-2">
+                    <button id="tracePlay" class="btn btn-sm btn-accent"></button>
+                    <button id="traceStep" class="btn btn-sm" title="One step (Right arrow)"><i data-icon="step"></i><span>Step</span></button>
+                    <button id="traceReset" class="btn btn-sm" title="Clear the trace"><i data-icon="undo"></i><span>Reset</span></button>
+                </div>
+                <div id="speedSeg" class="seg" role="radiogroup" aria-label="Playback speed">
+                    <button data-speed="slow" role="radio">0.5×</button>
+                    <button data-speed="normal" role="radio" class="on">1×</button>
+                    <button data-speed="fast" role="radio">2×</button>
+                </div>
+                <input id="traceSpeed" type="hidden" value="normal">
+                <label class="switch" title="Keep the inspector on the running function">
+                    <input id="traceFollow" type="checkbox" checked><span class="switch-track"></span>Follow
                 </label>
-                <button id="traceClose" class="ml-auto text-slate-500 hover:text-slate-300" title="Close">✕</button>
+                <span id="traceCount" class="ml-auto font-mono text-xs text-slate-400"></span>
+                <button id="traceClose" class="icon-btn" title="Close" aria-label="Close trace panel"><i data-icon="x"></i></button>
             </div>
-
-            <div class="flex-1 min-h-0 grid grid-cols-[minmax(0,1fr)_220px] divide-x divide-slate-800">
-                <div class="p-4 overflow-y-auto space-y-2" id="traceLog"></div>
-                <div class="p-3.5 overflow-y-auto space-y-3">
+            <div id="traceTimeline" class="timeline">
+                <div id="traceTicks" class="timeline-ticks"></div>
+                <div id="traceFill" class="timeline-fill"></div>
+            </div>
+            <div class="flex-1 min-h-0 grid grid-cols-[minmax(0,1fr)_270px]">
+                <div class="p-4 overflow-y-auto space-y-1" id="traceLog"></div>
+                <div class="p-4 overflow-y-auto space-y-4 border-l border-white/5 bg-black/10">
                     <div id="traceResult" class="hidden"></div>
                     <div>
-                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Call stack</h3>
-                        <div id="traceStack" class="space-y-1 font-mono text-sm"></div>
+                        <h3 class="eyebrow mb-2"><i data-icon="layers"></i>Call stack</h3>
+                        <div id="traceStack" class="space-y-1.5 font-mono text-[13px]"></div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <aside id="sidebar"
-               class="fixed top-16 bottom-0 right-0 w-[650px] border-l border-slate-800 bg-slate-900 flex flex-col transition-transform duration-300 z-40 translate-x-full">
+        <!-- ================= inspector ================= -->
+        <aside id="sidebar" class="fixed top-16 bottom-0 right-0 w-[600px] max-w-[92vw] z-40 flex flex-col translate-x-full">
 
-            <!-- Peeking Pull-Tab Handle -->
-            <button id="sidebarBtn" title="Toggle Inspector Panel"
-                    class="absolute -left-9 top-1/2 -translate-y-1/2 w-9 h-20 bg-slate-800 hover:bg-slate-700 border-y border-l border-slate-700 rounded-l-xl flex items-center justify-center text-slate-300 shadow-2xl cursor-pointer z-50">
-                <span id="sidebarBtnIcon" class="text-sm font-bold">◀</span>
+            <button id="sidebarBtn" title="Toggle inspector (E)" aria-label="Toggle inspector" class="sidebar-handle">
+                <span id="sidebarBtnIcon"><i data-icon="chevronLeft"></i></span>
             </button>
 
-            <!-- Header Bar -->
-            <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 shrink-0">
-                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Inspector Panel</span>
+            <div class="sb-head">
+                <span class="eyebrow"><i data-icon="eye"></i>Inspector</span>
+                <div id="tabs" class="tabs hidden" role="tablist">
+                    <button id="tabOverview" role="tab" class="tab on" data-tab="overview"><i data-icon="sparkles"></i>Overview</button>
+                    <button id="tabCode" role="tab" class="tab" data-tab="code"><i data-icon="code"></i>Decompiled</button>
+                    <span id="tabInk" class="tab-ink"></span>
+                </div>
             </div>
 
             <!-- Intro Panel Content -->
-            <div id="intro" class="flex-1 overflow-y-auto p-5 space-y-4 text-sm text-slate-300">
-                <h2 class="text-base font-bold text-white">How to read this</h2>
-                <p>This graph shows which functions call which. Starting from <span
-                        class="font-mono text-emerald-400">main</span> is the easiest way into any program.</p>
-                <ol class="list-decimal list-inside space-y-2 text-slate-300">
+            <div id="intro" class="flex-1 overflow-y-auto p-6 space-y-5 text-sm text-slate-300">
+                <h2 class="text-xl font-bold text-white">How to read this</h2>
+                <p class="text-slate-400">This graph shows which functions call which. Starting from
+                    <span class="font-mono text-emerald-300">main</span> is the easiest way into any program.</p>
+                <ol class="steps">
                     <li>Click a function to read its decompiled C.</li>
                     <li>Clicking also reveals its callers and callees.</li>
                     <li>Work out what the small leaf functions do first.</li>
                     <li>Then go back up and see how they combine.</li>
-                    <li><span class="text-red-400 font-semibold">Red glow</span> marks functions worth a closer look. It's a
-                        heuristic, and the sidebar says why.
-                    </li>
+                    <li><span class="text-rose-300 font-semibold">Red glow</span> marks functions worth a closer look.
+                        It's a heuristic, and the inspector says why.</li>
                 </ol>
             </div>
 
             <!-- Detail Inspector Content -->
-            <div id="detail" class="hidden flex-1 overflow-y-auto p-5 space-y-5">
-                <!-- Identity: what is this thing? -->
-                <div class="space-y-2">
-                    <div class="flex items-center gap-2.5">
-                        <span id="funcTypeBadge" class="text-xs font-mono tracking-wider uppercase border px-2 py-0.5 rounded"></span>
-                        <span id="funcAddr" class="text-xs font-mono text-slate-500"></span>
+            <div id="detail" class="hidden flex-1 overflow-y-auto">
+                <div class="p-5 pb-3 space-y-4">
+                    <div id="idCard" class="id-card">
+                        <div class="id-card-inner space-y-2.5">
+                            <div class="flex items-center gap-2.5">
+                                <span id="funcTypeBadge" class="type-badge"></span>
+                                <span id="funcAddr" class="text-xs font-mono text-slate-500"></span>
+                                <span id="funcHot" class="hot-badge hidden"><i data-icon="flag"></i><span></span></span>
+                            </div>
+                            <div class="flex items-start gap-2">
+                                <h2 id="funcName" contenteditable="plaintext-only" spellcheck="false"
+                                    title="Click to rename. Enter saves, Esc cancels."
+                                    class="flex-1 min-w-0 text-[26px] font-bold font-mono text-white break-all leading-tight rounded-lg px-2 -mx-2 py-0.5 border border-transparent hover:border-white/10 focus:border-cyan-400/60 focus:bg-black/30 focus:outline-none cursor-text"></h2>
+                                <button id="renameReset" class="icon-btn hidden" title="Restore the original name" aria-label="Restore the original name"><i data-icon="undo"></i></button>
+                            </div>
+                            <p id="origName" class="hidden text-xs font-mono text-slate-500"></p>
+                            <p class="text-[11px] text-slate-500 flex items-center gap-1.5"><i data-icon="pencil" class="ic-xs"></i>Click the name to rename it. The new name shows in the graph, trace and decompiled code.</p>
+                            <p id="typeInfo" class="text-[13px] text-slate-400 leading-relaxed"></p>
+                        </div>
                     </div>
-                    <div class="flex items-start gap-2">
-                        <h2 id="funcName" contenteditable="plaintext-only" spellcheck="false"
-                            title="Click to rename. Enter saves, Esc cancels."
-                            class="flex-1 min-w-0 text-2xl font-bold font-mono text-white break-all leading-tight rounded-md px-1.5 -mx-1.5 border border-transparent hover:border-slate-700 focus:border-cyan-500 focus:bg-slate-950 focus:outline-none cursor-text"></h2>
-                        <button id="renameReset" class="btn btn-sm hidden" title="Restore the original name">↺</button>
+
+                    <div class="grid grid-cols-4 gap-2.5">
+                        <div class="tile"><i data-icon="callers"></i><b id="stCallers">0</b><span>callers</span></div>
+                        <div class="tile"><i data-icon="callees"></i><b id="stCallees">0</b><span>callees</span></div>
+                        <div class="tile"><i data-icon="lines"></i><b id="stLines">0</b><span>lines of C</span></div>
+                        <div class="tile"><i data-icon="quote"></i><b id="stStrings">0</b><span>strings</span></div>
                     </div>
-                    <p id="origName" class="hidden text-xs font-mono text-slate-500"></p>
-                    <p class="text-[11px] text-slate-600">✎ Click the name to rename it. The new name shows in the graph, trace and decompiled code.</p>
-                    <p id="typeInfo" class="text-[13px] text-slate-400 leading-relaxed"></p>
                 </div>
 
-                <!-- Primary: what does it do? -->
-                <details class="sect sect-primary" open>
-                    <summary class="text-sm font-semibold">Function Summary</summary>
-                    <div class="sect-body">
+                <div id="paneOverview" class="pane px-5 pb-6 space-y-3.5">
+                    <section class="card card-primary">
+                        <h3 class="card-title"><i data-icon="sparkles"></i>Function summary</h3>
                         <p id="aiSummary" class="leading-relaxed whitespace-normal break-words"></p>
-                    </div>
-                </details>
+                    </section>
 
-                <details id="whyBox" class="sect sect-warn hidden" open>
-                    <summary class="text-sm font-semibold">⚑ Why this looks interesting</summary>
-                    <ul id="whyList"
-                        class="sect-body list-disc list-inside space-y-1.5 text-sm text-slate-200 leading-relaxed"></ul>
-                </details>
+                    <section id="whyBox" class="card card-warn hidden">
+                        <h3 class="card-title"><i data-icon="flag"></i>Why this looks interesting<span id="whyCount" class="ml-auto count-pill"></span></h3>
+                        <ul id="whyList" class="why-list"></ul>
+                    </section>
 
-                <!-- Context: where does it sit? -->
-                <details class="sect" open>
-                    <summary class="text-sm font-semibold">Call path from main</summary>
-                    <div id="pathBox" class="sect-body flex flex-wrap items-center gap-2 text-sm"></div>
-                </details>
+                    <section class="card">
+                        <h3 class="card-title"><i data-icon="route"></i>Call path from main</h3>
+                        <div id="pathBox" class="path-flow"></div>
+                    </section>
 
-                <details class="sect">
-                    <summary class="text-sm font-semibold"><span>Connections <span id="connCount"
-                                                                                   class="ml-1 normal-case tracking-normal font-normal text-slate-500"></span></span></summary>
-                    <div class="sect-body grid grid-cols-2 gap-4">
-                        <div>
-                            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Called by</h3>
-                            <div id="callers" class="flex flex-wrap gap-1.5 text-sm"></div>
+                    <section class="card">
+                        <h3 class="card-title"><i data-icon="fork"></i>Connections <span id="connCount" class="ml-1 normal-case tracking-normal font-normal text-slate-500"></span></h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="mini-head">Called by</h4>
+                                <div id="callers" class="flex flex-wrap gap-1.5"></div>
+                            </div>
+                            <div>
+                                <h4 class="mini-head">Calls</h4>
+                                <div id="callees" class="flex flex-wrap gap-1.5"></div>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Calls</h3>
-                            <div id="callees" class="flex flex-wrap gap-1.5 text-sm"></div>
-                        </div>
-                    </div>
-                </details>
+                    </section>
+                </div>
 
-                <details class="sect">
-                    <summary class="text-sm font-semibold">Decompiled output (Ghidra)</summary>
-                    <div class="sect-body">
-                    <pre class="rounded-xl !bg-slate-950 border !border-slate-800 !p-3.5 text-sm overflow-x-auto"><code
-                            id="codeBlock" class="language-c"></code></pre>
+                <div id="paneCode" class="pane hidden px-5 pb-6 space-y-3.5">
+                    <div class="code-shell">
+                        <div class="code-bar">
+                            <span class="dots"><i></i><i></i><i></i></span>
+                            <span id="codeFile" class="font-mono text-xs text-slate-400 truncate"></span>
+                            <span class="ml-auto text-[11px] text-slate-500 uppercase tracking-wider">Ghidra · C</span>
+                            <button id="copyCode" class="icon-btn sm" title="Copy code" aria-label="Copy code"><i data-icon="copy"></i></button>
+                        </div>
+                        <pre class="line-numbers"><code id="codeBlock" class="language-c"></code></pre>
                     </div>
-                </details>
+
+                    <details class="card cheat">
+                        <summary class="card-title"><i data-icon="book"></i>Decompiler cheat sheet<i data-icon="chevronDown" class="chev"></i></summary>
+                        <ul class="space-y-2 text-[13px] text-slate-300 leading-relaxed pt-1">
+                            <li><span class="font-mono text-cyan-200">param_1, param_2…</span> the arguments the function received, in order.</li>
+                            <li><span class="font-mono text-cyan-200">local_XX, iVar1, pcVar2…</span> local variables. The prefix hints at the type (i = int, u = unsigned, pc = char pointer, s = size_t).</li>
+                            <li><span class="font-mono text-cyan-200">undefined8</span> 8 bytes Ghidra couldn't type. Often a pointer or a long.</li>
+                            <li><span class="font-mono text-cyan-200">FUN_00101234</span> a function with no name. Rename it once you understand it.</li>
+                            <li><span class="font-mono text-cyan-200">in_FS_OFFSET + 0x28</span> the stack canary, a compiler safety check ending in <span class="font-mono">__stack_chk_fail</span>. Usually ignore it.</li>
+                            <li><span class="font-mono text-cyan-200">0x21, 0x1505…</span> hex constants. Convert to decimal and look them up, since some are famous.</li>
+                            <li><span class="font-mono text-cyan-200">"quoted strings"</span> the best clues. Start there.</li>
+                            <li>Decompiled code is a guess. Names and types are reconstructed, so the original source looked different.</li>
+                        </ul>
+                    </details>
+                </div>
             </div>
-
-            <!-- Footer Cheat Sheet -->
-            <details class="border-t border-slate-800 bg-slate-950/60 shrink-0">
-                <summary
-                        class="px-4 py-3 text-sm font-semibold text-slate-300 flex justify-between hover:text-white cursor-pointer">
-                    <span>📖 Decompiler cheat sheet</span><span class="text-slate-500">toggle</span>
-                </summary>
-                <ul class="px-4 pb-4 pt-1 space-y-2 text-sm text-slate-300 leading-relaxed max-h-56 overflow-y-auto">
-                    <li><span class="font-mono text-slate-200">param_1, param_2…</span> the arguments the function received,
-                        in order.
-                    </li>
-                    <li><span class="font-mono text-slate-200">local_XX, iVar1, pcVar2…</span> local variables. The prefix
-                        hints at the type (i = int, u = unsigned, pc = char pointer, s = size_t).
-                    </li>
-                    <li><span class="font-mono text-slate-200">undefined8</span> 8 bytes Ghidra couldn't type. Often a
-                        pointer or a long.
-                    </li>
-                    <li><span class="font-mono text-slate-200">FUN_00101234</span> a function with no name. Rename it once
-                        you understand it.
-                    </li>
-                    <li><span class="font-mono text-slate-200">in_FS_OFFSET + 0x28</span> the stack canary, a compiler
-                        safety check ending in <span class="font-mono">__stack_chk_fail</span>. Usually ignore it.
-                    </li>
-                    <li><span class="font-mono text-slate-200">0x21, 0x1505…</span> hex constants. Convert to decimal and
-                        look them up, since some are famous.
-                    </li>
-                    <li><span class="font-mono text-slate-200">"quoted strings"</span> the best clues. Start there.</li>
-                    <li>Decompiled code is a guess. Names and types are reconstructed, so the original source looked
-                        different.
-                    </li>
-                </ul>
-            </details>
         </aside>
     </div>
-    <script src="app.js"></script>
+</div>
+
+<!-- ================= command palette ================= -->
+<div id="palette" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Search functions">
+    <div class="palette glass">
+        <div class="pal-head">
+            <i data-icon="search"></i>
+            <input id="searchInput" type="text" placeholder="Jump to a function or address…" spellcheck="false" autocomplete="off">
+            <kbd class="kbd">Esc</kbd>
+        </div>
+        <div id="paletteList" class="pal-list" role="listbox"></div>
+        <div class="pal-foot">
+            <span><kbd class="kbd">↑</kbd><kbd class="kbd">↓</kbd> move</span>
+            <span><kbd class="kbd">Enter</kbd> open</span>
+            <span><kbd class="kbd">Shift</kbd><kbd class="kbd">Enter</kbd> highlight all matches</span>
+        </div>
+    </div>
+</div>
+
+<!-- ================= shortcuts ================= -->
+<div id="help" class="overlay hidden" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">
+    <div class="help-card glass">
+        <h2 class="text-lg font-bold mb-4 flex items-center gap-2"><i data-icon="keyboard"></i>Keyboard shortcuts</h2>
+        <dl class="help-grid">
+            <dt><kbd class="kbd">Ctrl</kbd><kbd class="kbd">K</kbd> or <kbd class="kbd">/</kbd></dt><dd>Search functions</dd>
+            <dt><kbd class="kbd">T</kbd></dt><dd>Run the trace</dd>
+            <dt><kbd class="kbd">Space</kbd></dt><dd>Play or pause the trace</dd>
+            <dt><kbd class="kbd">→</kbd></dt><dd>Step the trace</dd>
+            <dt><kbd class="kbd">F</kbd></dt><dd>Fit graph to screen</dd>
+            <dt><kbd class="kbd">I</kbd></dt><dd>Toggle interest highlighting</dd>
+            <dt><kbd class="kbd">E</kbd></dt><dd>Toggle the inspector</dd>
+            <dt><kbd class="kbd">Esc</kbd></dt><dd>Close dialogs</dd>
+        </dl>
+    </div>
+</div>
+
+<div id="toasts" aria-live="polite"></div>
+
+<script src="app.js"></script>
 </body>
 </html>
