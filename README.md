@@ -119,6 +119,7 @@ This enables the viewer to execute the binary on demand with either:
 The application runs the binary under gdb and animates the trace through the graph in real time.
 
 Important: live execution is intentionally guarded. The tool requires confirmation before running the target binary and warns against running untrusted software without a sandbox or VM.
+           If you run live tracing on something sketchy, it WILL execute the sketchy program on your machine. 
 
 ## Environment variables
 
