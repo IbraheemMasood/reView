@@ -1,0 +1,238 @@
+{
+  "nodes": [
+    {
+      "id": "0x00101050",
+      "label": "_start",
+      "type": "entry",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "void processEntry _start(undefined8 param_1,undefined8 param_2)\n\n{\n  undefined1 auStack_8 [8];\n  \n  (*(code *)PTR___libc_start_main_00103fc0)(main,param_2,&stack0x00000008,0,0,param_1,auStack_8);\n  do {\n                    /* WARNING: Do nothing block with infinite loop */\n  } while( true );\n}"
+    },
+    {
+      "id": "0x00101149",
+      "label": "boom",
+      "type": "custom",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "void boom(void)\n\n{\n  uRam0000000000000000 = 1;\n  return;\n}"
+    },
+    {
+      "id": "0x00101162",
+      "label": "main",
+      "type": "entry",
+      "summary": "Click on nodes to inspect execution pathways.",
+      "decompiled": "undefined8 main(void)\n\n{\n  puts(\"about to crash\");\n  fflush(stdout);\n  boom();\n  return 0;\n}"
+    },
+    {
+      "id": "0xEXTERNAL:00000001",
+      "label": "__libc_start_main",
+      "type": "import",
+      "summary": "Sets up the C runtime, calls main, then exits with main's return value.",
+      "decompiled": "// Imported function\nundefined __libc_start_main();"
+    },
+    {
+      "id": "0xEXTERNAL:00000002",
+      "label": "puts",
+      "type": "import",
+      "summary": "Prints a string followed by a newline. Compilers often turn printf(\"text\\n\") into puts.",
+      "decompiled": "// Imported function\nint puts(char * __s);"
+    },
+    {
+      "id": "0xEXTERNAL:00000003",
+      "label": "fflush",
+      "type": "import",
+      "summary": "A library function that lives outside this binary. Look it up in the docs (man <name>) rather than reversing it.",
+      "decompiled": "// Imported function\nint fflush(FILE * __stream);"
+    }
+  ],
+  "edges": [
+    {
+      "source": "0x00101050",
+      "target": "0xEXTERNAL:00000001"
+    },
+    {
+      "source": "0x00101050",
+      "target": "0x00101162"
+    },
+    {
+      "source": "0x00101162",
+      "target": "0x00101149"
+    },
+    {
+      "source": "0x00101162",
+      "target": "0xEXTERNAL:00000002"
+    },
+    {
+      "source": "0x00101162",
+      "target": "0xEXTERNAL:00000003"
+    }
+  ],
+  "traces": [
+    {
+      "label": "no arguments",
+      "events": [
+        {
+          "t": "enter",
+          "fn": "0x00101050"
+        },
+        {
+          "t": "call",
+          "from": "0x00101050",
+          "to": "0xEXTERNAL:00000001",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0xEXTERNAL:00000001",
+          "to": "0x00101162",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x00101162",
+          "to": "0xEXTERNAL:00000002",
+          "args": "\"about to crash\""
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000002",
+          "val": "15"
+        },
+        {
+          "t": "call",
+          "from": "0x00101162",
+          "to": "0xEXTERNAL:00000003",
+          "args": "0x7ffff7e1a580"
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000003",
+          "val": "0"
+        },
+        {
+          "t": "call",
+          "from": "0x00101162",
+          "to": "0x00101149",
+          "args": ""
+        },
+        {
+          "t": "end",
+          "ok": false,
+          "level": "error",
+          "note": "CRASHED (SIGSEGV at boom + 16 in section .text of /tmp/review-work-7y25p7kz/crash, inside boom)",
+          "output": "about to crash"
+        }
+      ]
+    },
+    {
+      "label": "args: test",
+      "events": [
+        {
+          "t": "enter",
+          "fn": "0x00101050"
+        },
+        {
+          "t": "call",
+          "from": "0x00101050",
+          "to": "0xEXTERNAL:00000001",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0xEXTERNAL:00000001",
+          "to": "0x00101162",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x00101162",
+          "to": "0xEXTERNAL:00000002",
+          "args": "\"about to crash\""
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000002",
+          "val": "15"
+        },
+        {
+          "t": "call",
+          "from": "0x00101162",
+          "to": "0xEXTERNAL:00000003",
+          "args": "0x7ffff7e1a580"
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000003",
+          "val": "0"
+        },
+        {
+          "t": "call",
+          "from": "0x00101162",
+          "to": "0x00101149",
+          "args": ""
+        },
+        {
+          "t": "end",
+          "ok": false,
+          "level": "error",
+          "note": "CRASHED (SIGSEGV at boom + 16 in section .text of /tmp/review-work-7y25p7kz/crash, inside boom)",
+          "output": "about to crash"
+        }
+      ]
+    },
+    {
+      "label": "stdin: test",
+      "events": [
+        {
+          "t": "enter",
+          "fn": "0x00101050"
+        },
+        {
+          "t": "call",
+          "from": "0x00101050",
+          "to": "0xEXTERNAL:00000001",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0xEXTERNAL:00000001",
+          "to": "0x00101162",
+          "args": ""
+        },
+        {
+          "t": "call",
+          "from": "0x00101162",
+          "to": "0xEXTERNAL:00000002",
+          "args": "\"about to crash\""
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000002",
+          "val": "15"
+        },
+        {
+          "t": "call",
+          "from": "0x00101162",
+          "to": "0xEXTERNAL:00000003",
+          "args": "0x7ffff7e1a580"
+        },
+        {
+          "t": "ret",
+          "fn": "0xEXTERNAL:00000003",
+          "val": "0"
+        },
+        {
+          "t": "call",
+          "from": "0x00101162",
+          "to": "0x00101149",
+          "args": ""
+        },
+        {
+          "t": "end",
+          "ok": false,
+          "level": "error",
+          "note": "CRASHED (SIGSEGV at boom + 16 in section .text of /tmp/review-work-7y25p7kz/crash, inside boom)",
+          "output": "about to crash"
+        }
+      ]
+    }
+  ]
+}
