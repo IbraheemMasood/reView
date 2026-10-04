@@ -1,0 +1,53 @@
+/* Portable token export from the shipped viewer theme.
+   This file is not imported by viewer/index.html or the backend runtime. */
+:root {
+    color-scheme: dark;
+
+    --color-background: #111513;
+    --surface-0: #141a17;
+    --surface-1: #191f1c;
+    --surface-2: #202723;
+    --surface-raised: #252d28;
+    --color-border: #303a34;
+    --color-border-soft: #26302a;
+    --color-text: #e8eee9;
+    --text-soft: #c0cbc4;
+    --text-muted: #9aa89f;
+    --text-faint: #75847a;
+    --color-accent: #bdebd8;
+    --color-accent-soft: #253e33;
+    --color-accent-dim: #7db69c;
+    --color-node: #202a25;
+    --color-edge: #526158;
+    --color-import: #c8b4df;
+    --color-import-soft: #322b39;
+    --color-risk: #ef927e;
+    --color-risk-soft: #422925;
+
+    --font-sans: "Host Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "Martian Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --nav-width: 240px;
+    --inspector-width: 360px;
+    --easing-out: cubic-bezier(.16, 1, .3, 1);
+
+    /* Extracted recurring spacing and corner values for portable consumers. */
+    --space-tight: 4px;
+    --space-compact: 8px;
+    --space-inset: 12px;
+    --space-panel: 16px;
+    --space-gutter: 24px;
+    --radius-sm: 4px;
+    --radius-control: 5px;
+    --radius-md: 6px;
+    --radius-panel: 7px;
+    --radius-lg: 8px;
+}
+
+@media (max-width: 1220px) {
+    :root { --nav-width: 222px; --inspector-width: 336px; }
+}
+
+@media (max-width: 1080px) {
+    :root { --inspector-width: 320px; }
+}
