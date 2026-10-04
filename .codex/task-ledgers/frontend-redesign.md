@@ -37,4 +37,5 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 - Backend Python, graph datasets, API contracts, and the three-file viewer copy contract remain unchanged. Real GDB execution was not run on this Windows host; the live API request contract is covered by tests.
 - Design system documented in DESIGN.md and .impeccable/design.json. Native SVG/CSS/canvas visuals only; screenshots are actual Chrome captures with before/after provenance in docs/UI_REDESIGN.md.
 - Dedicated preview project is intentionally retained for PR review. Exact ownership and teardown are documented in preview-redesign.md.
-- Browser verification tab closed, viewport overrides restored, temporary HTTP servers stopped, and local preview staging removed. PR publication is the final delivery step.
+- Browser verification tab closed, viewport overrides restored, temporary HTTP servers stopped, and local preview staging removed.
+- Published and attached https://github.com/IbraheemMasood/reView/pull/2 from NathanPannell:codex-redesign to upstream master. PR is open and mergeable, with 19 screenshots. Implementation commit: 419255e151639ee4d5c85d59203361c953e8702f.
